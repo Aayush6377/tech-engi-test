@@ -87,5 +87,14 @@ export async function getEngineer(requireApproval = true) {
     }
   }
 
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  if (user.lastActiveAt < twentyFourHoursAgo) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastActiveAt: new Date() }
+    });
+  }
+
   return { user, error: null };
 }

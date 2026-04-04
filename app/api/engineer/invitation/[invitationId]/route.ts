@@ -103,6 +103,14 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ i
       return NextResponse.json({ success: true, message: "Invitation rejected" }, { status: 200 });
     }
 
+    const activeProject = await prisma.project.findFirst({
+      where: { engineerId: user.engineerProfile.id, status: "IN_PROGRESS" }
+    });
+
+    if (activeProject) {
+      return NextResponse.json({ success: false, message: "You cannot accept this invitation because you are already working on an active project" }, { status: 400 });
+    }
+
     if (invitation.project.status !== "SEARCHING" || invitation.project.engineerId !== null) {
       return NextResponse.json({ success: false, message: "This project is no longer available" }, { status: 400 });
     }

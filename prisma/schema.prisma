@@ -22,10 +22,12 @@ model User {
   password String?
   role Role  
   image String?
+  lastActiveAt DateTime @default(now())
 
   accounts Account[]
   clientProfile ClientProfile?
   engineerProfile EngineerProfile?
+  raisedTickets Ticket[]
 }
 
 model ClientProfile {
@@ -72,6 +74,8 @@ model EngineerProfile {
   certifications String[]
   skills String[]
   embedding Unsupported("vector(768)")?
+  completedProjects Int @default(0)
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   assignedWork Project[]
@@ -102,6 +106,7 @@ enum ProjectStatus {
   AWAITING_ADVANCE
   SEARCHING
   IN_PROGRESS
+  IN_REVIEW
   COMPLETED
   CANCELED
 }
@@ -126,6 +131,7 @@ model Project {
   engineer EngineerProfile? @relation(fields: [engineerId], references: [id])
 
   invitations ProjectInvitation[]
+  tickets Ticket[]
 }
 
 enum InvitationStatus {
@@ -146,6 +152,37 @@ model ProjectInvitation {
   engineer EngineerProfile @relation(fields: [engineerId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, engineerId])
+}
+
+enum TicketType {
+  PAYMENT
+  COMMUNICATION
+  TECHNICAL
+  DELIVERY
+  OTHER
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model Ticket {
+  id String @id @default(uuid())
+  projectId String
+  raisedById String       
+
+  issueType TicketType
+  description String @db.Text
+  images String[]
+  status TicketStatus @default(OPEN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  raisedBy User @relation(fields: [raisedById], references: [id], onDelete: Cascade)
 }
 
 enum Otptype {

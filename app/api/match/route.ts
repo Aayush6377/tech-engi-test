@@ -40,7 +40,7 @@ export async function POST( req: NextRequest ) {
     const topEngineerIds: string[] = await getTopMatches(projectId);
 
     if (topEngineerIds && topEngineerIds.length > 0) {
-      for (const engId of topEngineerIds) {
+      const invitationPromises = topEngineerIds.map(async (engId) => {
         
         await prisma.projectInvitation.create({
             data: {
@@ -59,12 +59,15 @@ export async function POST( req: NextRequest ) {
             const emailHtml = projectInvitationTemplate(engineer.user.name || "Engineer", project.title);
             await sendEmail(engineer.user.email, `New Match: ${project.title}`, emailHtml);
         }
-      }
+      });
+
+      await Promise.all(invitationPromises);
     }
 
     return NextResponse.json({ success: true, message: "Matching completed" }, { status: 200 });
 
-  } catch {
+  } catch (e){
+    console.error(e);
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }
