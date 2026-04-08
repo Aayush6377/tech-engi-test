@@ -111,7 +111,7 @@ async function main() {
             qualification: Qualification.UG,
             idType: IdType.AADHAAR,
             idNumber: `1234-5678-00${i.toString().padStart(2, '0')}`,
-            idImage: "/placeholder-id.jpg",
+            idFile: "/placeholder-id.jpg",
             skills: engineerSkills,
             certifications: ["B.Tech Electronics"],
           }

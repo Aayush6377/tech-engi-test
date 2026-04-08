@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getEngineer } from "@/lib/auth";
-import { deleteFile, uploadImage } from "@/lib/uploads";
+import { deleteFile, uploadFile } from "@/lib/uploads";
 import { z } from "zod";
 import { generateEmbedding } from "@/lib/embeddings";
 
@@ -40,8 +40,8 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     
-    const idImageFile = formData.get("idImage") as File;
-    if (!idImageFile){
+    const idFile = formData.get("file") as File;
+    if (!idFile){
         return NextResponse.json({ success: false, message: "ID Image is required" }, { status: 400 });
     }
 
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: validation.error.issues[0].message }, { status: 400 });
     }
 
-    const idImageUrl = await uploadImage(idImageFile, "kyc");
+    const idFileUrl = await uploadFile(idFile, "kyc");
 
     const embeddingText = `Skills: ${validation.data.skills.join(", ")}`;
     const embeddingVector = await generateEmbedding(embeddingText);
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
         qualification: validation.data.qualification,
         idType: validation.data.idType,
         idNumber: validation.data.idNumber,
-        idImage: idImageUrl,
+        idFile: idFileUrl,
         skills: validation.data.skills,
         certifications: validation.data.certifications || [],
       }
@@ -98,7 +98,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const formData = await req.formData();
-    const idImageFile = formData.get("idImage") as File | null;
+    const idFile = formData.get("file") as File | null;
 
     const data = {
       qualification: formData.get("qualification"),
@@ -113,14 +113,14 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ success: false, message: validation.error.issues[0].message }, { status: 400 });
     }
 
-    let idImageUrl = user.engineerProfile.idImage;
+    let idFileUrl = user.engineerProfile.idFile;
     
-    if (idImageFile && idImageFile.size > 0) {
-      if (user.engineerProfile.idImage) {
-        await deleteFile(user.engineerProfile.idImage);
+    if (idFile && idFile.size > 0) {
+      if (user.engineerProfile.idFile) {
+        await deleteFile(user.engineerProfile.idFile);
       }
       
-      idImageUrl = await uploadImage(idImageFile, "kyc");
+      idFileUrl = await uploadFile(idFile, "kyc");
     }
 
     const embeddingText = `Skills: ${validation.data.skills.join(", ")}`;
@@ -133,7 +133,7 @@ export async function PUT(req: NextRequest) {
         qualification: validation.data.qualification,
         idType: validation.data.idType,
         idNumber: validation.data.idNumber,
-        idImage: idImageUrl,
+        idFile: idFileUrl,
         skills: validation.data.skills,
         certifications: validation.data.certifications || []
       }
