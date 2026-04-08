@@ -1,10 +1,27 @@
+"use client";
 import Image from "next/image";
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
 
 const Start = () => {
+  const navRef = useRef<HTMLElement>(null);
+  const taglineRef = useRef<HTMLDivElement>(null);
+  const headlineRef = useRef<HTMLHeadingElement>(null);
+  const rightRef = useRef<HTMLDivElement>(null);
+  const bannerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+    tl.fromTo(navRef.current, { y: -40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 })
+      .fromTo(taglineRef.current, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, "-=0.2")
+      .fromTo(headlineRef.current, { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7 }, "-=0.3")
+      .fromTo(rightRef.current, { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6 }, "-=0.4")
+      .fromTo(bannerRef.current, { scaleY: 0.8, opacity: 0, transformOrigin: "top" }, { scaleY: 1, opacity: 1, duration: 0.7 }, "-=0.3");
+  }, []);
   return (
     <div className="min-h-screen p-5 bg-white font-sans">
       {/* Navbar */}
-      <header className="border border-2 border-gray-200">
+      <header ref={navRef} className="border border-2 border-gray-200">
         <div className="max-w-full mx-auto px-6 h-[64px] flex items-center justify-between">
           {/* Left: Logo + Nav */}
           <div className="flex items-center">
@@ -60,12 +77,13 @@ const Start = () => {
         <div className="flex items-start justify-between gap-8 mb-8">
           {/* Left */}
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-4 font-id text-[#FFAE58]">
+            <div ref={taglineRef} className="flex items-center gap-2 mb-4 font-id text-[#FFAE58]">
               <span className="text-[16px] uppercase">STRESS LESS</span>
               <span className="">|</span>
               <span className="text-[16px] uppercase">TIMELY DELIVERY</span>
             </div>
             <h1
+              ref={headlineRef}
               className="text-[94px] font-benz leading-[1.0] text-black uppercase"
               style={{ letterSpacing: "-1px" }}
             >
@@ -74,7 +92,7 @@ const Start = () => {
           </div>
 
           {/* Right */}
-          <div className="flex flex-col items-end justify-between gap-6 pt-2 max-w-[41%] text-right">
+          <div ref={rightRef} className="flex flex-col items-end justify-between gap-6 pt-2 max-w-[41%] text-right">
             <p className="text-[26px] font-medium font-id text-black ">
               Tech-ENGI connects students with skilled builders who turns your ideas, assignments and projects into ready-to-submit work fast!
             </p>
@@ -92,7 +110,7 @@ const Start = () => {
         {/* Orange Banner */}
         <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "#FFAE58", minHeight: "418px" }}>
           {/* Two guys image — centered/left */}
-          <div className="absolute top-75 -right-5 -translate-x-1/2" style={{ width: "850px" }}>
+          <div  ref={bannerRef}  className="absolute top-75 -right-5 -translate-x-1/2" style={{ width: "850px" }}>
             <Image
               src="/two-guys.png"
               alt="Student and builder shaking hands"

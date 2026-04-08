@@ -1,103 +1,181 @@
-import Image from "next/image"
-import { ArrowLeft, ArrowRight, Plus } from "lucide-react"
+"use client";
+import Image from "next/image";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { useScrollAnimation } from "@/lib/useScrollAnimation";
 
 const faqs = [
   {
     question: "How is Uvodo different from other eCommerce platforms?",
-    answer: "Uvodo offers a streamlined onboarding experience, low fees, and built-in project matching for tech buyers and builders."
+    answer: null,
   },
   {
     question: "Can I use my own domain with Uvodo?",
-    answer: "Yes, you can connect your existing domain. Uvodo also provides a forever free uvo.do domain suffix to all sellers upon creating an account."
+    answer:
+      "Yes, you can connect your existing domain. Uvodo also provides a forever free uvo.do domain suffix to all sellers upon creating an account.",
   },
   {
     question: "Can I sell my products with Uvodo without creating an online store?",
-    answer: "Yes. Uvodo supports listing services and digital products directly, with minimal setup and an easy product management flow."
+    answer: null,
   },
   {
     question: "Is there a setup fee for using Uvodo?",
-    answer: "No, there is no upfront setup fee. You only pay when projects are matched and work begins."
+    answer: null,
   },
   {
     question: "In what countries can I use Uvodo?",
-    answer: "Uvodo is currently available globally, with support for major regions and local payments coming soon."
-  }
-]
+    answer: null,
+  },
+];
 
 const AboutUs = () => {
+  const [openIndex, setOpenIndex] = useState<number | null>(1);
+  const testimonialRef = useScrollAnimation('fadeUp')
+  const faqRef = useScrollAnimation('fadeUp')
+
   return (
-    <section className="relative overflow-hidden bg-white py-24 px-6">
-      <div className="absolute left-0 top-0 h-[450px] w-[450px] rounded-full bg-orange-200/90 blur-3xl -translate-x-1/2 -translate-y-1/2" />
-      <div className="mx-auto flex max-w-7xl flex-col gap-16 lg:flex-row lg:items-start">
-        <div className="relative lg:w-1/2">
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-slate-200 bg-white shadow-[0_50px_100px_-60px_rgba(15,23,42,0.2)]">
-            <Image
-              src="/white-guy.jpg"
-              alt="Customer testimonial portrait"
-              width={760}
-              height={920}
-              className="h-[620px] w-full object-cover"
-              priority
-            />
-          </div>
+    <div className="w-full h-full font-id">
+
+      {/* ── Section 1: Testimonial ── */}
+      <section ref={testimonialRef} className="relative bg-white overflow-hidden border-b border-gray-200 h-full">
+        {/* Orange circle top-left */}
+        {/* <div
+          className="absolute -top-16 -left-16 w-[30%] h-[280px] rounded-full"
+          style={{ backgroundColor: "#F5A623", opacity: 0.85 }}
+        /> */}
+        <div className="w-[1275px] h-[1275px] p-[200px] rounded-full bg-[#FFAE58] absolute -top-60 -left-230">
+          <div className="w-full h-full rounded-full bg-white"></div>
         </div>
 
-        <div className="lg:w-1/2">
-          <div className="max-w-2xl space-y-8">
-            <div className="flex flex-col gap-4">
-              <p className="text-sm font-semibold uppercase tracking-[0.35em] text-orange-500">What others</p>
-              <h2 className="text-5xl font-black leading-tight text-slate-950">
-                think about us?
+        <div className="max-w-full mx-auto px-18 py-16 relative z-10">
+          <div className="flex items-start gap-10">
+
+            {/* Left: person image */}
+            <div className="relative flex-shrink-0 w-[434px]">
+
+              <Image
+                src="/white-guy.jpg"
+                alt="Cecilia Pouros"
+                width={434}
+                height={631}
+                className="w-full h-[631px] object-cover object-top"
+                priority
+              />
+
+            </div>
+
+
+            {/* Middle: testimonial card */}
+            <div className="flex-1 max-w-[569px] border border-gray-200 font-inter bg-white shadow-lg p-6 absolute left-100 top-60 mt-8">
+              <h3 className="text-[40px] font-bold text-black">Cecilia Pouros</h3>
+              <p className="text-[14px] text-gray-400 mb-4">Regional Markets Executive</p>
+              <p className="text-[20px] text-black leading-relaxed">
+                Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.
+                Velit officia consequat duis enim velit mollit. Exercitation veniam
+                consequat sunt nostrud amet.
+              </p>
+            </div>
+            {/* Stars */}
+            <div className="mt-6 absolute left-160 bottom-20 flex items-center border border-gray-200 gap-4 bg-white px-6 py-4 shadow-lg">
+              {[...Array(5)].map((_, i) => (
+                <span key={i} className="text-[#F7871B] text-[28px]">★</span>
+              ))}
+            </div>
+
+            {/* Right: heading */}
+            <div className="flex-1 text-[55px] text-right pt-4 font-id font-bold">
+              <h2 className="leading-tight text-black">
+                What others{" "}
+                <span className="text-orange-400">think</span>
+                <br />about us?
+              </h2>
+
+              {/* Big quote decoration */}
+              <div
+                className="mt-6 ml-auto w-fit text-[100px] leading-none font-black text-gray-100 select-none"
+                style={{ fontFamily: "Georgia, serif" }}
+              >
+                "
+              </div>
+
+              {/* Nav arrows */}
+              <div className="flex items-end justify-end mt-64 ">
+                <button className="w-20 h-20 border-2 border-gray-300 flex items-center justify-center hover:bg-gray-50">
+                  <ChevronLeft size={20} />
+                </button>
+                <button className="w-20 h-20 text-black  border-2 border-gray-300 flex items-center justify-center hover:bg-gray-50">
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ── Section 2: FAQ ── */}
+      <section ref={faqRef} className="bg-white font-inter">
+        <div className="max-w-full mx-auto">
+          <div className="flex items-start justify-between gap-10 bg-orange-300/10 px-20 pt-10">
+
+            {/* Left: heading */}
+            <div className="flex">
+              <h2 className="text-[60px] font-medium text-black leading-tight">
+                Things,{" "}
+                <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#FFAE58] text-white text-[20px] font-bold">
+                  ?
+                </span>{" "}
+                you
+                <br />probably wonder.
               </h2>
             </div>
 
-            <div className="relative rounded-[2rem] bg-white p-8 shadow-xl">
-              <div className="absolute right-6 top-6 text-7xl font-black text-orange-100">“</div>
-              <div className="relative z-10 space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-950">Cecilia Pouros</h3>
-                  <p className="text-sm text-slate-500">Regional Markets Executive</p>
-                </div>
-                <p className="text-sm leading-7 text-slate-600">
-                  Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.
-                </p>
-
-                <div className="inline-flex items-center gap-1 rounded-full bg-slate-950 px-4 py-2 text-sm text-white">
-                  {Array.from({ length: 5 }, (_, index) => (
-                    <span key={index}>★</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition hover:border-slate-500">
-                <ArrowLeft size={18} />
-              </button>
-              <button className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition hover:border-slate-500">
-                <ArrowRight size={18} />
-              </button>
-            </div>
-
-            <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6 shadow-sm">
-              <h3 className="text-2xl font-bold text-slate-950">Things, you probably wonder.</h3>
-              <div className="mt-6 space-y-4">
-                {faqs.map((faq, index) => (
-                  <details key={index} className="rounded-2xl border border-slate-200 bg-white p-4">
-                    <summary className="flex cursor-pointer items-center justify-between gap-4 text-sm font-semibold text-slate-950">
-                      {faq.question}
-                      <Plus size={18} />
-                    </summary>
-                    <p className="mt-3 text-sm leading-7 text-slate-600">{faq.answer}</p>
-                  </details>
-                ))}
-              </div>
+            {/* Right: emoji */}
+            <div className="flex">
+              <Image
+                src="/girl.png"
+                alt="Emoji"
+                width={218}
+                height={218}
+                className="w-full h-[218px] object-cover object-bottom"
+              />
             </div>
           </div>
-        </div>
-      </div>
-    </section>
-  )
-}
 
-export default AboutUs
+          {/* FAQ list */}
+          <div className="mt-8 max-w-170 mx-auto px-20 space-y-4 font-inter">
+            {faqs.map((faq, i) => (
+              <div key={i} className="border border-gray-200">
+                <button
+                  className="w-full flex items-center justify-between space-y-5 py-6 px-5 text-left"
+                  onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                >
+                  <span
+                    className={`text-[16px] ${openIndex === i ? "font-semibold text-black" : "text-gray-600"
+                      }`}
+                  >
+                    {faq.question}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`flex-shrink-0 text-gray-400 transition-transform ${openIndex === i ? "rotate-180" : ""
+                      }`}
+                  />
+                </button>
+                {openIndex === i && faq.answer && (
+                  <p className="pb-4 px-5 text-[13px] text-gray-500">
+                    {faq.answer}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  );
+};
+
+export default AboutUs;

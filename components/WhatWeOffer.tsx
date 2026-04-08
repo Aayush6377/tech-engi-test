@@ -1,4 +1,6 @@
+"use client";
 import React from 'react'
+import { useScrollAnimation } from '@/lib/useScrollAnimation'
 
 const WhatWeOffer = () => {
   const engineersOffers = [
@@ -24,11 +26,15 @@ const WhatWeOffer = () => {
     "Lorem ipsum dolor sit amet consectetur."
   ]
 
+  const titleRef = useScrollAnimation('fadeUp')
+  const leftRef = useScrollAnimation('slideLeft')
+  const rightRef = useScrollAnimation('slideRight')
+
   return (
     <section className="w-full bg-white py-20 px-6">
       <div className="mx-auto max-w-7xl">
         {/* Title */}
-        <h2 className="text-[64px] font-semibold text-black font-id text-center mb-16">
+        <h2 ref={titleRef} className="text-[64px] font-semibold text-black font-id text-center mb-16">
           What we <span className="text-[#FFAE58] font-DMserif">offer?</span>
         </h2>
 
@@ -36,7 +42,7 @@ const WhatWeOffer = () => {
         <div className="flex justify-between font-id gap-8 items-start">
 
           {/* Left Column - For Engineers */}
-          <div className="flex items-stretch gap-0">
+          <div ref={leftRef} className="flex items-stretch gap-0">
             {/* Vertical Label */}
             <div className="flex items-center pr-4">
               <p
@@ -62,7 +68,7 @@ const WhatWeOffer = () => {
           </div>
 
           {/* Right Column - For Clients (offset to start at 2nd item) */}
-          <div className="flex items-stretch gap-0 mt-[150px]">
+          <div ref={rightRef} className="flex items-stretch gap-0 mt-[150px]">
             {/* Card */}
             <div className="border border-b-0 border-slate-300 p-8">
               <div className="space-y-6">

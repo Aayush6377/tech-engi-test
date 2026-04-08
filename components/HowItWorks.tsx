@@ -1,5 +1,7 @@
+"use client";
 import React from 'react'
 import { Briefcase, Users, Rocket } from 'lucide-react'
+import { useScrollAnimation } from '@/lib/useScrollAnimation'
 
 const HowItWorks = () => {
     const steps = [
@@ -20,11 +22,14 @@ const HowItWorks = () => {
         }
     ]
 
+    const headerRef = useScrollAnimation('fadeUp')
+    const cardsRef = useScrollAnimation('fadeUp')
+
     return (
         <section className="w-full bg-white py-20 px-6">
             <div className="mx-auto max-w-7xl">
                 {/* Header */}
-                <div className="text-center space-y-6 mb-16">
+                <div ref={headerRef} className="text-center space-y-6 mb-16">
                     <div className="inline-flex items-center gap-2 justify-center text-[#FFAE58] ">
                         <span className="text-lg">•</span>
                         <p className="font-medium font-id text-[22px] tracking-wide">How it works</p>
@@ -37,7 +42,7 @@ const HowItWorks = () => {
                 </div>
 
                 {/* Cards Grid */}
-                <div className="flex justify-between gap-20">
+                <div ref={cardsRef} className="flex justify-between gap-20">
                     {steps.map((step, index) => {
                         const Icon = step.icon
                         return (
