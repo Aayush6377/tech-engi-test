@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getClient } from "@/lib/auth";
 import { z } from "zod";
+import { deletionRequestedClientTemplate, deletionRequestedEngineerTemplate } from "@/lib/templates";
+import sendEmail from "@/lib/email";
 
 export async function GET( req: NextRequest, { params }: { params: Promise<{ projectId: string }> } ) {
   try {
@@ -33,10 +35,27 @@ export async function GET( req: NextRequest, { params }: { params: Promise<{ pro
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
     }
 
+    const sanitizedResources = project.resources.map(res => {
+      if (res.isLocked && !project.isFinalPaymentMade) {
+        return { 
+          ...res, 
+          content: "[LOCKED: Complete the final 60% payment to view these credentials]" 
+        };
+      }
+      return res;
+    });
+
     const acceptedInvitation = project.invitations.find(inv => inv.status === "ACCEPTED");
     const filteredInvitations = acceptedInvitation ? [acceptedInvitation] : project.invitations.filter(inv => inv.status === "SENT" || inv.status === "EXPIRED");
 
-    return NextResponse.json({ success: true, project: { ...project, invitations: filteredInvitations } }, { status: 200 });
+    return NextResponse.json({ 
+      success: true, 
+      project: { 
+        ...project, 
+        resources: sanitizedResources,
+        invitations: filteredInvitations 
+      } 
+    }, { status: 200 });
 
   } catch {
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
@@ -50,6 +69,7 @@ const updateProjectSchema = z.object({
   instruments: z.array(z.string()).default([]),
   startDate: z.coerce.date().optional(),
   endDate: z.coerce.date().optional(),
+  progress: z.number().min(0).max(100).optional(),
 });
 
 export async function PUT( req: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
@@ -77,7 +97,7 @@ export async function PUT( req: NextRequest, { params }: { params: Promise<{ pro
       return NextResponse.json({ success: false, message: validation.error.issues[0].message }, { status: 400 });
     }
 
-    const { title, description, budget, instruments, startDate, endDate } = validation.data;
+    const { title, description, budget, instruments, startDate, endDate, progress } = validation.data;
 
     if (startDate && endDate && startDate > endDate) {
       return NextResponse.json({ success: false, message: "Start date must be before end date" }, { status: 400 });
@@ -85,7 +105,7 @@ export async function PUT( req: NextRequest, { params }: { params: Promise<{ pro
 
     await prisma.project.update({
       where: { id: projectId },
-      data: { title, description, budget, instruments, startDate, endDate }
+      data: { title, description, budget, instruments, startDate, endDate, progress }
     });
 
     return NextResponse.json({ success: true, message: "Project updated successfully" }, { status: 200 });
@@ -105,7 +125,13 @@ export async function DELETE( req: NextRequest, { params }: { params: Promise<{ 
     const body = await req.json();
     const { reason } = body;
 
-    const project = await prisma.project.findUnique({ where: { id: projectId }, include: { deletionRequest: true } });
+    const project = await prisma.project.findUnique({ 
+      where: { id: projectId }, 
+      include: { 
+        deletionRequest: true,
+        engineer: { include: { user: true } }
+      } 
+    });
 
     if (!project){
       return NextResponse.json({ success: false, message: "Project not found" }, { status: 404 });
@@ -129,6 +155,17 @@ export async function DELETE( req: NextRequest, { params }: { params: Promise<{ 
       update: { reason: body.reason, status: "PENDING" },
       create: { projectId, reason: body.reason }
     });
+
+    const clientRefundAmount = project.budget * 0.20;
+    const engineerCompensationAmount = project.budget * 0.10;
+
+    const clientEmailHtml = deletionRequestedClientTemplate(project.title, clientRefundAmount);
+    await sendEmail(user.email, `Project Deletion Request - ${project.title}`, clientEmailHtml);
+
+    if (project.engineer?.user.email) {
+      const engineerEmailHtml = deletionRequestedEngineerTemplate(project.title, engineerCompensationAmount);
+      await sendEmail(project.engineer.user.email, `Notice: Deletion Requested for ${project.title}`, engineerEmailHtml);
+    }
 
     return NextResponse.json({ success: true, message: "Deletion request sent to admin for review" }, { status: 200 });
   } catch {

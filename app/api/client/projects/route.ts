@@ -24,8 +24,7 @@ export async function GET() {
 
     return NextResponse.json({ success: true, projects }, { status: 200 });
 
-  } catch (e) {
-    console.log(e);
+  } catch {
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

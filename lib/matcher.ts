@@ -29,7 +29,7 @@ export async function getTopMatches(projectId: string) {
     AND e.id NOT IN (
       SELECT "engineerId" 
       FROM "Project" 
-      WHERE status = 'IN_PROGRESS' 
+      WHERE status = ('IN_PROGRESS', 'IN_REVIEW')
       AND "engineerId" IS NOT NULL
     )
     

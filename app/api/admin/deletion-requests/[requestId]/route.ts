@@ -93,13 +93,45 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ r
       return NextResponse.json({ success: true, message: "Deletion request rejected" }, { status: 200 });
     }
 
+    const clientRefundAmount = project.budget * 0.20;
+    const engineerCompensationAmount = project.budget * 0.10;
+
+    await prisma.$transaction(async (tx) => {
+
+      await tx.projectDeletionRequest.update({ where: { id: requestId }, data: { status: "APPROVED" } });
+
+      await tx.project.update({ where: { id: project.id }, data: { status: "CANCELED" } });
+
+      await tx.transaction.create({
+        data: {
+          projectId: project.id,
+          userId: project.client.userId, 
+          amount: clientRefundAmount,
+          type: "REFUND_CLIENT",
+          status: "PENDING"
+        }
+      });
+
+      if (project.engineer) {
+        await tx.transaction.create({
+          data: {
+            projectId: project.id,
+            userId: project.engineer.userId,
+            amount: engineerCompensationAmount,
+            type: "PAYOUT_ENGINEER",
+            status: "PENDING"
+          }
+        });
+      }
+    });
+
     if (clientUser.email) {
-      const clientEmailHtml = deletionRequestApprovedTemplate(clientUser.name || "Client", project.title, false);
+      const clientEmailHtml = deletionRequestApprovedTemplate(clientUser.name || "Client", project.title, clientRefundAmount, false);
       await sendEmail(clientUser.email, `Project Cancelled: ${project.title}`, clientEmailHtml);
     }
 
     if (engineerUser && engineerUser.email) {
-      const engEmailHtml = deletionRequestApprovedTemplate(engineerUser.name || "Engineer", project.title, true);
+      const engEmailHtml = deletionRequestApprovedTemplate(engineerUser.name || "Engineer", project.title, engineerCompensationAmount, true);
       await sendEmail(engineerUser.email, `Project Cancelled: ${project.title}`, engEmailHtml);
     }
 
@@ -108,8 +140,6 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ r
       const deletePromises = filesToDelete.map(file => deleteFile(file.content));
       await Promise.all(deletePromises); 
     }
-
-    await prisma.project.delete({ where: { id: project.id } });
 
     return NextResponse.json({ success: true, message: "Project deleted successfully" }, { status: 200 });
 

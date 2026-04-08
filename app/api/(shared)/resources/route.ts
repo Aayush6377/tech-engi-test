@@ -39,7 +39,18 @@ export async function GET(req: NextRequest) {
       include: { addedBy: { select: { name: true, role: true, image: true } } }
     });
 
-    return NextResponse.json({ success: true, resources }, { status: 200 });
+    const sanitizedResources = resources.map(res => {
+
+      if (user.role === "CLIENT" && res.isLocked && !project.isFinalPaymentMade) {
+        return { 
+          ...res, 
+          content: "[LOCKED: Complete the final 60% payment to view these credentials]" 
+        };
+      }
+      return res;
+    });
+
+    return NextResponse.json({ success: true, resources: sanitizedResources }, { status: 200 });
   } catch {
     return NextResponse.json({ success: false, message: "Inernal Server error" }, { status: 500 });
   }
@@ -109,7 +120,8 @@ export async function POST(req: NextRequest) {
         addedById: user.id,
         title: validation.data.title,
         type: validation.data.type,
-        content: finalContent
+        content: finalContent,
+        isLocked: validation.data.type === "CREDENTIALS"
       }
     });
 

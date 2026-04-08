@@ -27,9 +27,11 @@ model User {
   accounts Account[]
   clientProfile ClientProfile?
   engineerProfile EngineerProfile?
+  payoutDetail PayoutDetail?
   raisedTickets Ticket[]
   addedResources ProjectResource[]
   sentMessages ChatMessage[]
+  transactions Transaction[]
 }
 
 model ClientProfile {
@@ -103,12 +105,26 @@ model Account {
   @@unique([provider, providerAccountId])
 }
 
+model PayoutDetail {
+  id String @id @default(uuid())
+  userId String @unique
+  upiId String?
+  accountNumber String?
+  ifscCode String?
+  bankName String?
+  accountHolder String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
 enum ProjectStatus {
   DRAFT
   AWAITING_ADVANCE
   SEARCHING
   IN_PROGRESS
   IN_REVIEW
+  AWAITING_FINAL_PAYMENT
   COMPLETED
   CANCELED
 }
@@ -122,8 +138,14 @@ model Project {
   description String @db.Text
   budget Float
   instruments String[]
+
+  progress Int @default(0)
+  finalProjectLink String? @db.Text
+  isEngineerFinished Boolean @default(false)
   
   advancePaid Boolean @default(false)
+  isFinalPaymentMade Boolean @default(false)
+
   status ProjectStatus @default(DRAFT)
   startDate DateTime?
   endDate DateTime?
@@ -139,6 +161,7 @@ model Project {
   extensionRequests DeadlineExtensionRequest[]
   deletionRequest ProjectDeletionRequest?
   messages ChatMessage[]
+  transactions Transaction[]
 }
 
 enum ResourceType {
@@ -157,6 +180,7 @@ model ProjectResource {
   title String
   type ResourceType
   content String @db.Text
+  isLocked Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -219,7 +243,10 @@ model ChatMessage {
   projectId String
   senderId String
   content String @db.Text
+  isEdited Boolean @default(false)
+  
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
@@ -254,6 +281,38 @@ model Ticket {
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   raisedBy User @relation(fields: [raisedById], references: [id], onDelete: Cascade)
+}
+
+enum TransactionType {
+  ADVANCE_PAYMENT
+  FINAL_PAYMENT
+  REFUND_CLIENT
+  PAYOUT_ENGINEER
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model Transaction {
+  id String @id @default(uuid())
+  projectId String
+  userId String
+  amount Float
+  type TransactionType
+  status TransactionStatus @default(PENDING)
+  
+  razorpayOrderId String? @unique
+  razorpayPaymentId String? @unique
+  razorpaySignature String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum Otptype {

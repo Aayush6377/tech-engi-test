@@ -27,7 +27,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 
     await prisma.project.update({
         where: { id: projectId },
-        data: { status: "COMPLETED" }
+        data: { 
+          status: "AWAITING_FINAL_PAYMENT",
+          progress: 100 
+        }
     });
 
     await prisma.engineerProfile.update({

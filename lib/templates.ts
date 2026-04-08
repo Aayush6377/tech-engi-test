@@ -89,17 +89,15 @@ export const projectInvitationTemplate = (name: string, projectTitle: string) =>
   `;
 };
 
-export const deletionRequestApprovedTemplate = (userName: string, projectTitle: string, isEngineer: boolean) => `
-  <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-    <h2 style="color: #d9534f;">Project Cancellation Update</h2>
-    <p>Hello ${userName},</p>
-    <p>The project <b>${projectTitle}</b> has been officially cancelled and deleted by the platform administrator.</p>
-    ${isEngineer 
-      ? '<p><b>Action Required:</b> You no longer need to work on this project. Any pending settlements for work already completed will be processed according to our platform guidelines.</p>' 
-      : '<p>Your request to delete this project has been approved. The project, its resources, and all associated data have been permanently removed from our systems.</p>'
-    }
-    <br/>
-    <p>Regards,<br/>The Platform Team</p>
+export const deletionRequestApprovedTemplate = (name: string, projectTitle: string, amount: number, isEngineer: boolean) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px;">
+    <h2>Project Cancelled</h2>
+    <p>Hello ${name},</p>
+    <p>The project <b>${projectTitle}</b> has been officially cancelled</p>
+    <p>${isEngineer 
+      ? `As compensation for your time, a payout of <b>₹${amount.toLocaleString("en-IN")}</b> has been added to your ledger and will be processed shortly.` 
+      : `A refund of <b>₹${amount.toLocaleString("en-IN")}</b> has been added to your ledger and will be processed back to your account shortly.`
+    }</p>
   </div>
 `;
 
@@ -137,5 +135,48 @@ export const extensionReviewedTemplate = (engineerName: string, projectTitle: st
       : '<p>The original deadline still stands. If this causes a major issue, please raise a Ticket from your dashboard.</p>'}
     <br/>
     <p>Regards,<br/>The Platform Team</p>
+  </div>
+`;
+
+export const projectReadyForReviewTemplate = (projectTitle: string, previewLink: string) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+    <h3 style="color: #0275d8;">Your Project is Ready for Review!</h3>
+    <p>The engineer has submitted the final work for <b>${projectTitle}</b>.</p>
+    <p><b>Preview Link:</b> <a href="${previewLink}" target="_blank" rel="noopener noreferrer">${previewLink}</a></p>
+    <p>Please log in to your dashboard to review the work. Once you are satisfied, you can approve it and complete the final payment to unlock your credentials.</p>
+    <br/>
+    <p>Regards,<br/>The Platform Team</p>
+  </div>
+`;
+
+export const deletionRequestedClientTemplate = (projectTitle: string, refundAmount: number) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+    <h3 style="color: #d9534f;">Deletion Request Submitted</h3>
+    <p>We have received your request to delete the project: <b>${projectTitle}</b>.</p>
+    <p>Your request is currently pending admin approval. Please note that if approved, half of your 40% advance payment <b>(₹${refundAmount.toLocaleString("en-IN")})</b> will be refunded to your account in 3-4 working days.</p>
+    <br/>
+    <p>Regards,<br/>The Platform Team</p>
+  </div>
+`;
+
+export const deletionRequestedEngineerTemplate = (projectTitle: string, compensationAmount: number) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+    <h3 style="color: #f0ad4e;">Notice: Project Deletion Requested</h3>
+    <p>The client has submitted a request to cancel the project: <b>${projectTitle}</b>.</p>
+    <p>This request is under review by our Admin team. If the cancellation is approved, the project will be deleted. However, to compensate you for your time and blocked schedule, you will receive a guaranteed payout of <b>₹${compensationAmount.toLocaleString("en-IN")}</b>.</p>
+    <p>No further action is required from you at this time.</p>
+    <br/>
+    <p>Regards,<br/>The Platform Team</p>
+  </div>
+`;
+
+export const projectCompletedEngineerTemplate = (projectTitle: string, payoutAmount: number) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+    <h3 style="color: #5cb85c;">Project Officially Completed!</h3>
+    <p>Congratulations! The client has approved your work for <b>${projectTitle}</b> and successfully completed the final payment.</p>
+    <p>Your guaranteed payout of <b>₹${payoutAmount.toLocaleString("en-IN")}</b> has been officially added to our ledger.</p>
+    <p>This amount will be processed and transferred to your registered bank account/UPI ID within <b>3-4 working days</b>.</p>
+    <br/>
+    <p>Thank you for your excellent work!<br/>The Platform Team</p>
   </div>
 `;
