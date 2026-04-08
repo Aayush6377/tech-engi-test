@@ -73,7 +73,7 @@ model EngineerProfile {
   qualification Qualification
   idType IdType
   idNumber String
-  idImage String
+  idFile String
   
   certifications String[]
   skills String[]

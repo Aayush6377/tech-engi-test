@@ -104,7 +104,7 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ i
     }
 
     const activeProject = await prisma.project.findFirst({
-      where: { engineerId: user.engineerProfile.id, status: "IN_PROGRESS" }
+      where: { engineerId: user.engineerProfile.id, status: { in: ["IN_PROGRESS", "IN_REVIEW"] } }
     });
 
     if (activeProject) {
