@@ -52,7 +52,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({  success: true, message: "Profile saved successfully", profile }, { status: 200 });
 
-  } catch {
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+  } catch (err) {
+    console.error("[client/profile POST]", err);
+    return NextResponse.json({ success: false, message: err instanceof Error ? err.message : "Internal server error" }, { status: 500 });
   }
 }

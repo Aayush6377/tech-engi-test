@@ -60,10 +60,6 @@ export async function POST(req: NextRequest) {
 
     const idFileUrl = await uploadFile(idFile, "kyc");
 
-    const embeddingText = `Skills: ${validation.data.skills.join(", ")}`;
-    const embeddingVector = await generateEmbedding(embeddingText);
-    const vectorString = JSON.stringify(embeddingVector);
-
     const newProfile = await prisma.engineerProfile.create({
       data: {
         userId: user.id,
@@ -77,16 +73,23 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    await prisma.$executeRaw`
-      UPDATE "EngineerProfile"
-      SET embedding = ${vectorString}::vector
-      WHERE id = ${newProfile.id}
-    `;
+    // generate embedding in background — don't block the response
+    generateEmbedding(`Skills: ${validation.data.skills.join(", ")}`)
+      .then((embeddingVector) => {
+        const vectorString = JSON.stringify(embeddingVector);
+        return prisma.$executeRaw`
+          UPDATE "EngineerProfile"
+          SET embedding = ${vectorString}::vector
+          WHERE id = ${newProfile.id}
+        `;
+      })
+      .catch((err) => console.error("[embedding POST]", err));
 
     return NextResponse.json({ success: true, message: "Profile created successfully" }, { status: 201 });
 
-  } catch {
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+  } catch (err) {
+    console.error("[engineer/profile POST]", err);
+    return NextResponse.json({ success: false, message: err instanceof Error ? err.message : "Internal server error" }, { status: 500 });
   }
 }
 
@@ -123,10 +126,6 @@ export async function PUT(req: NextRequest) {
       idFileUrl = await uploadFile(idFile, "kyc");
     }
 
-    const embeddingText = `Skills: ${validation.data.skills.join(", ")}`;
-    const embeddingVector = await generateEmbedding(embeddingText);
-    const vectorString = JSON.stringify(embeddingVector);
-
     await prisma.engineerProfile.update({
       where: { userId: user.id },
       data: {
@@ -139,15 +138,22 @@ export async function PUT(req: NextRequest) {
       }
     });
 
-    await prisma.$executeRaw`
-      UPDATE "EngineerProfile"
-      SET embedding = ${vectorString}::vector
-      WHERE "userId" = ${user.id}
-    `;
+    // generate embedding in background — don't block the response
+    generateEmbedding(`Skills: ${validation.data.skills.join(", ")}`)
+      .then((embeddingVector) => {
+        const vectorString = JSON.stringify(embeddingVector);
+        return prisma.$executeRaw`
+          UPDATE "EngineerProfile"
+          SET embedding = ${vectorString}::vector
+          WHERE "userId" = ${user.id}
+        `;
+      })
+      .catch((err) => console.error("[embedding PUT]", err));
 
     return NextResponse.json({ success: true, message: "Profile updated successfully" }, { status: 200 });
 
-  } catch {
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+  } catch (err) {
+    console.error("[engineer/profile PUT]", err);
+    return NextResponse.json({ success: false, message: err instanceof Error ? err.message : "Internal server error" }, { status: 500 });
   }
 }

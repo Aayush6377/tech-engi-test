@@ -89,7 +89,7 @@ export default function LoginPage() {
               <label className="block text-sm font-medium text-gray-700">
                 Password
               </label>
-              <Link href="/forgot-password" className="text-xs text-blue-600 hover:text-blue-500">
+              <Link href="/forgot-password" className="text-xs text-[#f0b31e] hover:text-yellow-600 transition-colors">
                 Forgot password?
               </Link>
             </div>
@@ -106,7 +106,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white font-medium py-2.5 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400"
+            className="w-full bg-[#f0b31e] text-white font-medium py-2.5 rounded-lg hover:bg-yellow-600 transition-colors"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
@@ -145,7 +145,7 @@ export default function LoginPage() {
 
         <p className="mt-8 text-center text-sm text-gray-600">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-blue-600 hover:underline font-medium">
+          <Link href="/register" className="text-[#f0b31e] hover:underline font-medium">
             Register here
           </Link>
         </p>
