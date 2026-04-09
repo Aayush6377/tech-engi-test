@@ -73,7 +73,6 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    // generate embedding in background — don't block the response
     generateEmbedding(`Skills: ${validation.data.skills.join(", ")}`)
       .then((embeddingVector) => {
         const vectorString = JSON.stringify(embeddingVector);
@@ -87,9 +86,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, message: "Profile created successfully" }, { status: 201 });
 
-  } catch (err) {
-    console.error("[engineer/profile POST]", err);
-    return NextResponse.json({ success: false, message: err instanceof Error ? err.message : "Internal server error" }, { status: 500 });
+  } catch {
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -138,7 +136,6 @@ export async function PUT(req: NextRequest) {
       }
     });
 
-    // generate embedding in background — don't block the response
     generateEmbedding(`Skills: ${validation.data.skills.join(", ")}`)
       .then((embeddingVector) => {
         const vectorString = JSON.stringify(embeddingVector);
@@ -152,8 +149,7 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ success: true, message: "Profile updated successfully" }, { status: 200 });
 
-  } catch (err) {
-    console.error("[engineer/profile PUT]", err);
-    return NextResponse.json({ success: false, message: err instanceof Error ? err.message : "Internal server error" }, { status: 500 });
+  } catch {
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }
