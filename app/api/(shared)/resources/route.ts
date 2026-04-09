@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { getUser } from "@/lib/auth";
 import { uploadFile } from "@/lib/uploads";
 import { z } from "zod";
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ success: false, message: "Project ID is required" }, { status: 400 });
     }
 
-    const project = await Prisma.project.findUnique({
+    const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: { client: true, engineer: true }
     });
