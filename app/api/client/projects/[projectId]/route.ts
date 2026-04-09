@@ -99,6 +99,10 @@ export async function PUT( req: NextRequest, { params }: { params: Promise<{ pro
 
     const { title, description, budget, instruments, startDate, endDate, progress } = validation.data;
 
+    if (existingProject.advancePaid && budget !== existingProject.budget) {
+      return NextResponse.json({ success: false, message: "Budget cannot be changed after the advance payment has been made" }, { status: 400 });
+    }
+
     if (startDate && endDate && startDate > endDate) {
       return NextResponse.json({ success: false, message: "Start date must be before end date" }, { status: 400 });
     } 
@@ -139,6 +143,10 @@ export async function DELETE( req: NextRequest, { params }: { params: Promise<{ 
 
     if (project.clientId !== user.clientProfile.id){
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+    }
+
+    if (project.status === "COMPLETED") {
+      return NextResponse.json({ success: false, message: "Project is completed" }, { status: 400 });
     }
 
     if (project.deletionRequest && project.deletionRequest.status === "PENDING") {

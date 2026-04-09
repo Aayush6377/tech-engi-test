@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAdmin } from "@/lib/auth";
 import { deleteFile } from "@/lib/uploads";
 import sendEmail from "@/lib/email";
-import { deletionRequestApprovedTemplate, deletionRequestRejectedTemplate } from "@/lib/templates";
+import { adminActionRequiredTemplate, deletionRequestApprovedTemplate, deletionRequestRejectedTemplate } from "@/lib/templates";
 import { z } from "zod";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ requestId: string }> }) {
@@ -44,7 +44,7 @@ const actionSchema = z.object({
 
 export async function PATCH( req: NextRequest, { params }: { params: Promise<{ requestId: string }> } ) {
   try {
-    const { error } = await getAdmin();
+    const { user, error } = await getAdmin();
     if (error){
         return NextResponse.json({ success: false, message: error }, { status: 403 });
     }
@@ -93,6 +93,7 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ r
       return NextResponse.json({ success: true, message: "Deletion request rejected" }, { status: 200 });
     }
 
+    // approve request
     const clientRefundAmount = project.budget * 0.20;
     const engineerCompensationAmount = project.budget * 0.10;
 
@@ -139,6 +140,11 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ r
     if (filesToDelete.length > 0) {
       const deletePromises = filesToDelete.map(file => deleteFile(file.content));
       await Promise.all(deletePromises); 
+    }
+
+    if (user && user.email){
+      const adminEmailHtml = adminActionRequiredTemplate("REFUND", clientRefundAmount, project.title);
+      await sendEmail(user.email, `Action Required: Pending Refund`, adminEmailHtml);
     }
 
     return NextResponse.json({ success: true, message: "Project deleted successfully" }, { status: 200 });

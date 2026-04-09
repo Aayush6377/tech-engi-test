@@ -20,6 +20,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: "Project not found" }, { status: 404 });
     }
 
+    if (project.status !== "AWAITING_ADVANCE" && project.status !== "AWAITING_FINAL_PAYMENT") {
+      return NextResponse.json({ success: false, message: "Project is not ready to be paid" }, { status: 400 });
+    }
+
     if (project.isFinalPaymentMade) {
       return NextResponse.json({ success: false, message: "Project is already fully paid" }, { status: 400 });
     }

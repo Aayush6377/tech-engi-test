@@ -180,3 +180,50 @@ export const projectCompletedEngineerTemplate = (projectTitle: string, payoutAmo
     <p>Thank you for your excellent work!<br/>The Platform Team</p>
   </div>
 `;
+
+export const adminActionRequiredTemplate = (type: "REFUND" | "PAYOUT", amount: number, projectTitle: string) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+    <h3 style="color: #d9534f;">Action Required: Pending ${type}</h3>
+    <p>A <b>${type}</b> of <b>₹${amount.toLocaleString("en-IN")}</b> has been queued for the project <b>${projectTitle}</b>.</p>
+    <p>Please log in to the Admin Financial Dashboard to review, approve, and process this transaction.</p>
+    <br/>
+    <p>System Automated Message</p>
+  </div>
+`;
+
+export const refundProcessedTemplate = (projectTitle: string, amount: number) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; border: 1px solid #eaeaea; border-radius: 8px;">
+    <h3 style="color: #0275d8; border-bottom: 2px solid #f0b31e; padding-bottom: 10px;">Refund Processed Successfully</h3>
+    <p>We have successfully processed your partial refund for the canceled project: <b>${projectTitle}</b>.</p>
+    <p>An amount of <b style="font-size: 18px; color: #28a745;">₹${amount.toLocaleString("en-IN")}</b> has been initiated back to your original payment method via Razorpay.</p>
+    <p style="color: #666; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 4px;">
+      <i>Note: Depending on your bank, it may take 5-7 business days for the funds to reflect in your account statement.</i>
+    </p>
+    <br/>
+    <p>Best regards,<br/><b>The Platform Team</b></p>
+  </div>
+`;
+
+export const payoutSentTemplate = (projectTitle: string, amount: number) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; border: 1px solid #eaeaea; border-radius: 8px;">
+    <h3 style="color: #5cb85c; border-bottom: 2px solid #f0b31e; padding-bottom: 10px;">Payout Transferred Successfully! 🎉</h3>
+    <p>Great news! Your payout for the project <b>${projectTitle}</b> has been successfully transferred to your registered bank account or UPI ID.</p>
+    <p>An amount of <b style="font-size: 18px; color: #28a745;">₹${amount.toLocaleString("en-IN")}</b> has been released from our ledger.</p>
+    <p style="color: #666; font-size: 14px;">
+      Depending on your bank's processing times, the funds should reflect in your account shortly.
+    </p>
+    <br/>
+    <p>Thank you for your hard work,<br/><b>The Platform Team</b></p>
+  </div>
+`;
+
+export const payoutDetailsRequiredTemplate = (projectTitle: string, amount: number) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; border: 1px solid #eaeaea; border-radius: 8px;">
+    <h3 style="color: #d9534f; border-bottom: 2px solid #f0b31e; padding-bottom: 10px;">Action Required: Missing Payout Details</h3>
+    <p>Good news! Your payout of <b style="font-size: 18px; color: #28a745;">₹${amount.toLocaleString("en-IN")}</b> for the project <b>${projectTitle}</b> is ready to be transferred.</p>
+    <p>However, we cannot process the transfer because your payout details (Bank Account or UPI) are missing from your profile.</p>
+    <p>Please log in to your dashboard and navigate to the <b>Payout Settings</b> to update your information so we can release your funds.</p>
+    <br/>
+    <p>Best regards,<br/><b>The Platform Team</b></p>
+  </div>
+`;
