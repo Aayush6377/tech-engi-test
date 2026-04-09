@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client"; 
 import { getAdmin } from "@/lib/auth";
 import { deleteFile } from "@/lib/uploads";
 import sendEmail from "@/lib/email";
 import { adminActionRequiredTemplate, deletionRequestApprovedTemplate, deletionRequestRejectedTemplate } from "@/lib/templates";
 import { z } from "zod";
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ requestId: string }> }) {
+
+export async function GET(req: NextRequest, { params }: { params: { requestId: string } }) {
   try {
     const { error } = await getAdmin();
     if (error){
         return NextResponse.json({ success: false, message: error }, { status: 403 });
     }
 
-    const { requestId } = await params;
+    const { requestId } = params;
 
     const request = await prisma.projectDeletionRequest.findUnique({
       where: { id: requestId },
@@ -42,14 +44,15 @@ const actionSchema = z.object({
   action: z.enum(["APPROVE", "REJECT"])
 });
 
-export async function PATCH( req: NextRequest, { params }: { params: Promise<{ requestId: string }> } ) {
+
+export async function PATCH(req: NextRequest, { params }: { params: { requestId: string } }) {
   try {
     const { user, error } = await getAdmin();
     if (error){
         return NextResponse.json({ success: false, message: error }, { status: 403 });
     }
 
-    const { requestId } = await params;
+    const { requestId } = params;
     const body = await req.json();
     const validation = actionSchema.safeParse(body);
     
@@ -78,7 +81,7 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ r
     const clientUser = project.client.user;
     const engineerUser = project.engineer?.user;
 
-    // reject request
+   
     if (validation.data.action === "REJECT") {
       await prisma.projectDeletionRequest.update({
         where: { id: requestId },
@@ -93,15 +96,22 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ r
       return NextResponse.json({ success: true, message: "Deletion request rejected" }, { status: 200 });
     }
 
-    // approve request
+  
     const clientRefundAmount = project.budget * 0.20;
     const engineerCompensationAmount = project.budget * 0.10;
 
-    await prisma.$transaction(async (tx) => {
+    // ✅ FIX 3: correct typing
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
 
-      await tx.projectDeletionRequest.update({ where: { id: requestId }, data: { status: "APPROVED" } });
+      await tx.projectDeletionRequest.update({
+        where: { id: requestId },
+        data: { status: "APPROVED" }
+      });
 
-      await tx.project.update({ where: { id: project.id }, data: { status: "CANCELED" } });
+      await tx.project.update({
+        where: { id: project.id },
+        data: { status: "CANCELED" }
+      });
 
       await tx.transaction.create({
         data: {
@@ -126,6 +136,7 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ r
       }
     });
 
+    
     if (clientUser.email) {
       const clientEmailHtml = deletionRequestApprovedTemplate(clientUser.name || "Client", project.title, clientRefundAmount, false);
       await sendEmail(clientUser.email, `Project Cancelled: ${project.title}`, clientEmailHtml);
@@ -138,8 +149,7 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ r
 
     const filesToDelete = project.resources.filter(r => r.type === "FILE" || r.type === "IMAGE");
     if (filesToDelete.length > 0) {
-      const deletePromises = filesToDelete.map(file => deleteFile(file.content));
-      await Promise.all(deletePromises); 
+      await Promise.all(filesToDelete.map(file => deleteFile(file.content)));
     }
 
     if (user && user.email){
