@@ -132,7 +132,7 @@ export async function DELETE( req: NextRequest, { params }: { params: Promise<{ 
     const project = await prisma.project.findUnique({ 
       where: { id: projectId }, 
       include: { 
-        deletionRequest: true,
+        cancellationRequests: true,
         engineer: { include: { user: true } }
       } 
     });
@@ -146,36 +146,39 @@ export async function DELETE( req: NextRequest, { params }: { params: Promise<{ 
     }
 
     if (project.status === "COMPLETED") {
-      return NextResponse.json({ success: false, message: "Project is completed" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Project is completed and cannot be canceled." }, { status: 400 });
     }
 
-    if (project.deletionRequest && project.deletionRequest.status === "PENDING") {
-      return NextResponse.json({ success: false, message: "A deletion request is already pending" }, { status: 400 });
+    const hasPendingRequest = project.cancellationRequests.some(req => req.status === "PENDING" && req.initiator === "CLIENT");
+    if (hasPendingRequest) {
+      return NextResponse.json({ success: false, message: "A cancellation request is already pending for this project" }, { status: 400 });
     }
-
     
-    if (!reason || reason.length < 10) { // 10 char reason
-      return NextResponse.json({ success: false, message: "A valid reason is required to delete a project" }, { status: 400 });
+    if (!reason || reason.length < 10) { 
+      return NextResponse.json({ success: false, message: "A valid reason (at least 10 characters) is required to cancel a project" }, { status: 400 });
     }
 
-    await prisma.projectDeletionRequest.upsert({
-      where: { projectId },
-      update: { reason: body.reason, status: "PENDING" },
-      create: { projectId, reason: body.reason }
+    await prisma.projectCancellationRequest.create({
+      data: { 
+        projectId: project.id,
+        requestedById: user.id,
+        initiator: "CLIENT",
+        reason: reason 
+      }
     });
 
     const clientRefundAmount = project.budget * 0.20;
     const engineerCompensationAmount = project.budget * 0.10;
 
     const clientEmailHtml = deletionRequestedClientTemplate(project.title, clientRefundAmount);
-    await sendEmail(user.email, `Project Deletion Request - ${project.title}`, clientEmailHtml);
+    await sendEmail(user.email, `Project Cancellation Request - ${project.title}`, clientEmailHtml);
 
     if (project.engineer?.user.email) {
       const engineerEmailHtml = deletionRequestedEngineerTemplate(project.title, engineerCompensationAmount);
-      await sendEmail(project.engineer.user.email, `Notice: Deletion Requested for ${project.title}`, engineerEmailHtml);
+      await sendEmail(project.engineer.user.email, `Notice: Cancellation Requested for ${project.title}`, engineerEmailHtml);
     }
 
-    return NextResponse.json({ success: true, message: "Deletion request sent to admin for review" }, { status: 200 });
+    return NextResponse.json({ success: true, message: "Cancellation request sent to admin for review" }, { status: 200 });
   } catch {
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }

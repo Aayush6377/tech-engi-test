@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       queryOptions.where = { status: statusFilter };
     }
 
-    const requests = await prisma.projectDeletionRequest.findMany(queryOptions);
+    const requests = await prisma.projectCancellationRequest.findMany(queryOptions);
 
     return NextResponse.json({ success: true, requests }, { status: 200 });
 

@@ -16,7 +16,7 @@ export async function GET() {
 
       prisma.ticket.count({ where: { status: "OPEN" } }),
 
-      prisma.projectDeletionRequest.count({ where: { status: "PENDING" } }),
+      prisma.projectCancellationRequest.count({ where: { status: "PENDING" } }),
 
       prisma.transaction.count({ where: { status: "PENDING" } })
     ]);

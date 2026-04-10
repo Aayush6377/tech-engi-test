@@ -32,6 +32,7 @@ model User {
   addedResources ProjectResource[]
   sentMessages ChatMessage[]
   transactions Transaction[]
+  cancellationRequests ProjectCancellationRequest[]
 }
 
 model ClientProfile {
@@ -159,7 +160,7 @@ model Project {
   tickets Ticket[]
   resources ProjectResource[]
   extensionRequests DeadlineExtensionRequest[]
-  deletionRequest ProjectDeletionRequest?
+  cancellationRequests ProjectCancellationRequest[]
   messages ChatMessage[]
   transactions Transaction[]
 }
@@ -194,6 +195,7 @@ enum InvitationStatus {
   ACCEPTED
   REJECTED
   EXPIRED
+  DROPPED
 }
 
 model ProjectInvitation {
@@ -215,15 +217,23 @@ enum RequestStatus {
   REJECTED
 }
 
-model ProjectDeletionRequest {
+enum Initiator {
+  CLIENT
+  ENGINEER
+}
+
+model ProjectCancellationRequest {
   id String @id @default(uuid())
-  projectId String @unique 
+  projectId String 
+  requestedById String
+  initiator Initiator
   reason String @db.Text
   status RequestStatus @default(PENDING)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  requestedBy User @relation(fields: [requestedById], references: [id], onDelete: Cascade)
 }
 
 model DeadlineExtensionRequest {
