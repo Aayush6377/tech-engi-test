@@ -198,7 +198,7 @@ export default function AssetsTab({ projectId }: { projectId: string }) {
       )}
 
       {open && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 text-black">
           <div className="bg-white p-6 rounded-xl max-w-md w-full border border-[var(--border)] shadow-lg">
             <h2 className="text-lg font-semibold font-inter mb-4" style={{ color: "var(--text-primary)" }}>Upload Asset</h2>
             <input type="text" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} className={`${inputCls} mb-3`} />

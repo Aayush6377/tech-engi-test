@@ -18,15 +18,20 @@ const engineerSelect = {
   user: { select: { name: true, image: true, email: true } }
 } as const;
 
-export async function GET( req: NextRequest, context: { params: Promise<{ projectId: string }> } ) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ projectId: string }> }
+) {
   try {
+
     const { user, error } = await getAdmin();
     if (error || !user) {
       return NextResponse.json({ success: false, message: error || "Unauthorized" }, { status: 401 });
     }
 
 
-    const { projectId } = await context.params; const project = await prisma.project.findUnique({
+    const { projectId } = await params;
+    const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
         client: { include: { user: { select: { name: true, image: true, email: true } } } },
@@ -47,7 +52,8 @@ export async function GET( req: NextRequest, context: { params: Promise<{ projec
     }
 
     return NextResponse.json({ success: true, project }, { status: 200 });
-  } catch {
+  } catch (error) {
+    console.error("GET /api/admin/project error:", error); // add this
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

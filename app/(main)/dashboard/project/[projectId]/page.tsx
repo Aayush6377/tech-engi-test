@@ -9,9 +9,9 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 // ── Tab definitions per role ──────────────────────────────────────────────────
-const CLIENT_TABS = ["Overview", "Work Done", "Kanban", "Milestones", "Assets", "Report Issue", "Report Issue To Management", "Chat", "Payout"];
-const ENGINEER_TABS = ["Overview", "Work Done", "Kanban", "Milestones", "Assets", "Report Issue", "Report Issue To Management", "Chat", "Payout"];
-const ADMIN_TABS = ["Overview", "Work Done", "Kanban", "Milestones", "Assets", "Report Issue", "Report Issue To Management", "Chat", "Payout"];
+const CLIENT_TABS = ["Overview", "Work Done", "Daily Taks", "Kanban", "Milestones", "Credentials", "Assets", "Report Issue", "Report Issue To Management", "Chat", "Payout"];
+const ENGINEER_TABS = ["Overview", "Work Done", "Daily Taks", "Kanban", "Milestones", "Credentials", "Assets", "Report Issue", "Report Issue To Management", "Chat", "Payout"];
+const ADMIN_TABS = ["Overview", "Work Done", "Daily Taks", "Kanban", "Milestones", "Credentials", "Assets", "Report Issue", "Report Issue To Management", "Chat", "Payout"];
 
 function getTabsForRole(role: string) {
   if (role === "CLIENT") return CLIENT_TABS;

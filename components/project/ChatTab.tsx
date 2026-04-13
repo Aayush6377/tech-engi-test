@@ -31,7 +31,7 @@ export default function ChatTab({ projectId }: { projectId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
-
+  const isAdmin = session?.user?.role === "ADMIN";
   const bottomRef = useRef<HTMLDivElement>(null);
   const socket = getSocket();
 
@@ -197,23 +197,34 @@ export default function ChatTab({ projectId }: { projectId: string }) {
         </div>
       )}
 
-      {/* Input */}
-      <div className="px-5 py-3 border-t border-[var(--border)] flex items-center gap-3">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Type a message..."
-          className="flex-1 text-gray-900 text-sm font-inter border border-[var(--border)] px-3 py-2 outline-none focus:border-[var(--primary)] transition-colors"
-        />
-        <button
-          onClick={sendMessage}
-          disabled={!input.trim()}
-          className="w-9 h-9 bg-[var(--primary)] flex items-center justify-center text-white disabled:opacity-40 hover:bg-[#f09d3e] transition-colors shrink-0"
-        >
-          <Send size={15} />
-        </button>
-      </div>
+
+      {/* // In the input section at the bottom: */}
+      {!isAdmin && (
+        <div className="px-5 py-3 border-t border-[var(--border)] flex items-center gap-3">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            placeholder="Type a message..."
+            className="flex-1 text-gray-900 text-sm font-inter border border-[var(--border)] px-3 py-2 outline-none focus:border-[var(--primary)] transition-colors"
+          />
+          <button
+            onClick={sendMessage}
+            disabled={!input.trim()}
+            className="w-9 h-9 bg-[var(--primary)] flex items-center justify-center text-white disabled:opacity-40 hover:bg-[#f09d3e] transition-colors shrink-0"
+          >
+            <Send size={15} />
+          </button>
+        </div>
+      )}
+
+      {isAdmin && (
+        <div className="px-5 py-3 border-t border-[var(--border)]">
+          <p className="text-xs font-inter text-[var(--text-muted)] text-center">
+            You are viewing this chat as an admin (read-only)
+          </p>
+        </div>
+      )}
     </div>
   );
 }

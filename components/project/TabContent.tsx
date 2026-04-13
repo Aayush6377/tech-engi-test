@@ -13,6 +13,7 @@ import ReportIssueTab from "./ReportIssueTab";
 import ClientUpdate from "./ClientUpdate";
 import ChatTab from "./ChatTab";
 import CredentialsTab from "./CredentialsTab";
+import DailyTask from "./DailyTask";
 
 export default function TabContent({ activeTab, project }: any) {
 
@@ -23,11 +24,14 @@ export default function TabContent({ activeTab, project }: any) {
     case "Work Done":
       return <WorkDoneTab projectId={project.id} />;
 
+    case "Daily Taks":
+      return <DailyTask projectId={project.id} />
+
     case "Kanban":
       return <KanbanTab projectId={project.id} />;
 
     case "Credentials":
-      return <CredentialsTab  />;
+      return <CredentialsTab />;
 
     case "Milestones":
       return <MilestoneTab projectId={project.id} />;
@@ -49,6 +53,7 @@ export default function TabContent({ activeTab, project }: any) {
 
     case "Payout":
       return <ClientUpdate projectId={project.id} />
+
     // default:
     //   return <OverviewTab project={project} />;
   }
