@@ -7,12 +7,12 @@ const MESSAGES_PER_PAGE = 50;
 export async function GET(req: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
   try {
     const { user, error } = await getUser();
-    if (error || !user){
-        return NextResponse.json({ success: false, message: error || "Unauthorized" }, { status: 401 });
+    if (error || !user) {
+      return NextResponse.json({ success: false, message: error || "Unauthorized" }, { status: 401 });
     }
 
     const { projectId } = await params;
-    
+
     const { searchParams } = new URL(req.url);
     const cursor = searchParams.get("cursor");
 
@@ -21,20 +21,22 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ proj
       include: { client: true, engineer: true }
     });
 
-    if (!project){
-        return NextResponse.json({ success: false, message: "Project not found" }, { status: 404 });
+    if (!project) {
+      return NextResponse.json({ success: false, message: "Project not found" }, { status: 404 });
     }
+    const isAdmin = user.role === "ADMIN";
 
-    const isParticipant = (user.role === "CLIENT" && project.client?.userId === user.id) || 
-                          (user.role === "ENGINEER" && project.engineer?.userId === user.id);
+    const isParticipant =
+      (user.role === "CLIENT" && project.client?.userId === user.id) ||
+      (user.role === "ENGINEER" && project.engineer?.userId === user.id);
 
-    if (!isParticipant){
-        return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+    if (!isParticipant && !isAdmin) {
+      return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
     }
 
     const messages = await prisma.chatMessage.findMany({
       take: MESSAGES_PER_PAGE,
-      skip: cursor ? 1 : 0, 
+      skip: cursor ? 1 : 0,
       cursor: cursor ? { id: cursor } : undefined,
       where: { projectId },
       orderBy: { createdAt: "desc" },

@@ -52,6 +52,7 @@ export default function ChatTab({ projectId }: { projectId: string }) {
 
   // Join room + load history on mount
   useEffect(() => {
+    console.log("USER ID:", userId);
     if (!userId || !projectId) return;
     socket.emit("join_project", { projectId, userId });
     loadMessages();
@@ -158,7 +159,7 @@ export default function ChatTab({ projectId }: { projectId: string }) {
                       value={editContent}
                       onChange={(e) => setEditContent(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && submitEdit(msg.id)}
-                      className="text-xs font-inter border border-[var(--border)] px-2 py-1.5 outline-none focus:border-[var(--primary)] w-48"
+                      className="text-xs font-inter border border-[var(--border)] px-2 py-1.5 outline-none focus:border-[var(--primary)] w-48 text-gray-900"
                       autoFocus
                     />
                     <button onClick={() => submitEdit(msg.id)} className="text-green-600 hover:text-green-700"><Check size={14} /></button>
@@ -203,7 +204,7 @@ export default function ChatTab({ projectId }: { projectId: string }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           placeholder="Type a message..."
-          className="flex-1 text-sm font-inter border border-[var(--border)] px-3 py-2 outline-none focus:border-[var(--primary)] transition-colors"
+          className="flex-1 text-gray-900 text-sm font-inter border border-[var(--border)] px-3 py-2 outline-none focus:border-[var(--primary)] transition-colors"
         />
         <button
           onClick={sendMessage}

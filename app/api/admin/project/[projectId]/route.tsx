@@ -30,13 +30,15 @@ export async function GET(
     }
 
 
-    const { projectId } = await context.params;    const project = await prisma.project.findUnique({
+    const { projectId } = await context.params; const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
         client: { include: { user: { select: { name: true, image: true, email: true } } } },
         engineer: { select: engineerSelect },
         resources: { orderBy: { createdAt: "desc" } },
-        deletionRequest: true,
+        cancellationRequests: {
+          orderBy: { createdAt: "desc" }
+        },
         invitations: {
           include: { engineer: { select: engineerSelect } },
           orderBy: { createdAt: "desc" }
