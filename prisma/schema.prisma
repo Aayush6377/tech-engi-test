@@ -1,10 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
   extensions = [vector]
 }
 
@@ -15,34 +15,35 @@ enum Role {
 }
 
 model User {
-  id String @id @default(uuid())
-  name String?
-  email String @unique
+  id            String    @id @default(uuid())
+  name          String?
+  email         String    @unique
   emailVerified DateTime?
-  password String?
-  role Role  
-  image String?
-  lastActiveAt DateTime @default(now())
+  password      String?
+  role          Role
+  image         String?
+  lastActiveAt  DateTime  @default(now())
 
-  accounts Account[]
-  clientProfile ClientProfile?
-  engineerProfile EngineerProfile?
-  payoutDetail PayoutDetail?
-  raisedTickets Ticket[]
-  addedResources ProjectResource[]
-  sentMessages ChatMessage[]
-  transactions Transaction[]
+  accounts             Account[]
+  clientProfile        ClientProfile?
+  engineerProfile      EngineerProfile?
+  payoutDetail         PayoutDetail?
+  raisedTickets        Ticket[]
+  addedResources       ProjectResource[]
+  sentMessages         ChatMessage[]
+  transactions         Transaction[]
   cancellationRequests ProjectCancellationRequest[]
+  projectTasks         ProjectTask[]
 }
 
 model ClientProfile {
-  id String @id @default(uuid())
-  userId String @unique
-  totalProjects Int @default(0)
-  totalBudget Float @default(0)
-  expertise String[]
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  totalProjects Int      @default(0)
+  totalBudget   Float    @default(0)
+  expertise     String[]
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   projects Project[]
 }
 
@@ -66,40 +67,40 @@ enum IdType {
 }
 
 model EngineerProfile {
-  id String @id @default(uuid())
+  id     String @id @default(uuid())
   userId String @unique
 
-  status ApprovalStatus @default(PENDING)
-  rejectionReason String? @db.Text
-  qualification Qualification
-  idType IdType
-  idNumber String
-  idFile String
-  
-  certifications String[]
-  skills String[]
-  embedding Unsupported("vector(768)")?
-  completedProjects Int @default(0)
-  createdAt DateTime @default(now())
+  status          ApprovalStatus @default(PENDING)
+  rejectionReason String?        @db.Text
+  qualification   Qualification
+  idType          IdType
+  idNumber        String
+  idFile          String
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  certifications    String[]
+  skills            String[]
+  embedding         Unsupported("vector(768)")?
+  completedProjects Int                         @default(0)
+  createdAt         DateTime                    @default(now())
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   assignedWork Project[]
-  invitations ProjectInvitation[]
+  invitations  ProjectInvitation[]
 }
 
 model Account {
-  id String @id @default(uuid())
-  userId String
-  type String
-  provider String
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
   providerAccountId String
-  refresh_token String? @db.Text
-  access_token String? @db.Text
-  expires_at Int?
-  token_type String?
-  scope String?
-  id_token String? @db.Text
-  session_state String?
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -107,17 +108,16 @@ model Account {
 }
 
 model PayoutDetail {
-  id String @id @default(uuid())
-  userId String @unique
-  upiId String?
+  id            String  @id @default(uuid())
+  userId        String  @unique
+  upiId         String?
   accountNumber String?
-  ifscCode String?
-  bankName String?
+  ifscCode      String?
+  bankName      String?
   accountHolder String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
 
 enum ProjectStatus {
   DRAFT
@@ -131,38 +131,39 @@ enum ProjectStatus {
 }
 
 model Project {
-  id String @id @default(uuid())
-  clientId String
+  id         String  @id @default(uuid())
+  clientId   String
   engineerId String?
 
-  title String
-  description String @db.Text
-  budget Float
+  title       String
+  description String   @db.Text
+  budget      Float
   instruments String[]
 
-  progress Int @default(0)
-  finalProjectLink String? @db.Text
+  progress           Int     @default(0)
+  finalProjectLink   String? @db.Text
   isEngineerFinished Boolean @default(false)
-  
-  advancePaid Boolean @default(false)
+
+  advancePaid        Boolean @default(false)
   isFinalPaymentMade Boolean @default(false)
 
-  status ProjectStatus @default(DRAFT)
+  status    ProjectStatus @default(DRAFT)
   startDate DateTime?
-  endDate DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  endDate   DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
-  client ClientProfile @relation(fields: [clientId], references: [id])
+  client   ClientProfile    @relation(fields: [clientId], references: [id])
   engineer EngineerProfile? @relation(fields: [engineerId], references: [id])
 
-  invitations ProjectInvitation[]
-  tickets Ticket[]
-  resources ProjectResource[]
-  extensionRequests DeadlineExtensionRequest[]
+  invitations          ProjectInvitation[]
+  tickets              Ticket[]
+  resources            ProjectResource[]
+  extensionRequests    DeadlineExtensionRequest[]
   cancellationRequests ProjectCancellationRequest[]
-  messages ChatMessage[]
-  transactions Transaction[]
+  messages             ChatMessage[]
+  transactions         Transaction[]
+  projectTasks         ProjectTask[]
 }
 
 enum ResourceType {
@@ -174,20 +175,20 @@ enum ResourceType {
 }
 
 model ProjectResource {
-  id String @id @default(uuid())
+  id        String @id @default(uuid())
   projectId String
   addedById String
 
-  title String
-  type ResourceType
-  content String @db.Text
-  isLocked Boolean @default(false)
+  title    String
+  type     ResourceType
+  content  String       @db.Text
+  isLocked Boolean      @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  addedBy User  @relation(fields: [addedById], references: [id], onDelete: Cascade)
+  addedBy User    @relation(fields: [addedById], references: [id], onDelete: Cascade)
 }
 
 enum InvitationStatus {
@@ -199,13 +200,13 @@ enum InvitationStatus {
 }
 
 model ProjectInvitation {
-  id String @id @default(uuid())
-  projectId String
+  id         String           @id @default(uuid())
+  projectId  String
   engineerId String
-  status InvitationStatus @default(SENT)
-  createdAt DateTime @default(now())
+  status     InvitationStatus @default(SENT)
+  createdAt  DateTime         @default(now())
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project  Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   engineer EngineerProfile @relation(fields: [engineerId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, engineerId])
@@ -223,43 +224,43 @@ enum Initiator {
 }
 
 model ProjectCancellationRequest {
-  id String @id @default(uuid())
-  projectId String 
+  id            String        @id @default(uuid())
+  projectId     String
   requestedById String
-  initiator Initiator
-  reason String @db.Text
-  status RequestStatus @default(PENDING)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  initiator     Initiator
+  reason        String        @db.Text
+  status        RequestStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  requestedBy User @relation(fields: [requestedById], references: [id], onDelete: Cascade)
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  requestedBy User    @relation(fields: [requestedById], references: [id], onDelete: Cascade)
 }
 
 model DeadlineExtensionRequest {
-  id String @id @default(uuid())
-  projectId String
+  id               String        @id @default(uuid())
+  projectId        String
   requestedEndDate DateTime
-  reason String @db.Text
-  status RequestStatus @default(PENDING)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  reason           String        @db.Text
+  status           RequestStatus @default(PENDING)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model ChatMessage {
-  id String @id @default(uuid())
+  id        String  @id @default(uuid())
   projectId String
-  senderId String
-  content String @db.Text
-  isEdited Boolean @default(false)
-  
+  senderId  String
+  content   String  @db.Text
+  isEdited  Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  sender  User    @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }
 
 enum TicketType {
@@ -278,19 +279,19 @@ enum TicketStatus {
 }
 
 model Ticket {
-  id String @id @default(uuid())
-  projectId String
-  raisedById String       
+  id         String @id @default(uuid())
+  projectId  String
+  raisedById String
 
-  issueType TicketType
-  description String @db.Text
-  images String[]
-  status TicketStatus @default(OPEN)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  issueType   TicketType
+  description String       @db.Text
+  images      String[]
+  status      TicketStatus @default(OPEN)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  raisedBy User @relation(fields: [raisedById], references: [id], onDelete: Cascade)
+  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  raisedBy User    @relation(fields: [raisedById], references: [id], onDelete: Cascade)
 }
 
 enum TransactionType {
@@ -307,14 +308,14 @@ enum TransactionStatus {
 }
 
 model Transaction {
-  id String @id @default(uuid())
+  id        String            @id @default(uuid())
   projectId String
-  userId String
-  amount Float
-  type TransactionType
-  status TransactionStatus @default(PENDING)
-  
-  razorpayOrderId String? @unique
+  userId    String
+  amount    Float
+  type      TransactionType
+  status    TransactionStatus @default(PENDING)
+
+  razorpayOrderId   String? @unique
   razorpayPaymentId String? @unique
   razorpaySignature String?
 
@@ -322,7 +323,7 @@ model Transaction {
   updatedAt DateTime @updatedAt
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum Otptype {
@@ -331,12 +332,32 @@ enum Otptype {
 }
 
 model Otp {
-  id String @id @default(uuid())
-  email String
-  code String
-  type Otptype
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  type      Otptype
   expiresAt DateTime
   createdAt DateTime @default(now())
 
   @@unique([email, type])
+}
+
+model ProjectTask {
+  id          String @id @default(uuid())
+  projectId   String
+  createdById String
+
+  title       String
+  description String?  @db.Text
+  date        DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy User    @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([createdById])
+  @@index([date])
 }

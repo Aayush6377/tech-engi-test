@@ -1,13 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar, Pencil, Trash2 } from "lucide-react";
+import { Calendar, Pencil, Trash2, Lock, AlertCircle } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface Task {
     id: string;
     title: string;
     description: string;
     date: string;
+    createdAt: string;
+    createdBy: {
+        id: string;
+        name: string;
+        image?: string;
+    };
+}
+
+interface CurrentUser {
+    id: string;
+    name: string;
+    role: "ADMIN" | "ENGINEER" | "CLIENT";
 }
 
 const DailyTask = ({ projectId }: { projectId: string }) => {
@@ -19,22 +32,56 @@ const DailyTask = ({ projectId }: { projectId: string }) => {
     });
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+    // Fetch current user
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            try {
+                const res = await fetch("/api/auth/me");
+                const data = await res.json();
+                if (data.success) setCurrentUser(data.user);
+            } catch (error) {
+                console.error("Error fetching current user:", error);
+            }
+        };
+        fetchCurrentUser();
+    }, []);
 
     // Fetch all tasks for the project
     const fetchTasks = async () => {
         try {
-            const res = await fetch(`/api/project-tasks?projectId=${projectId}`);
+            const res = await fetch(`/api/admin/project/daily-task?projectId=${projectId}`);
             if (!res.ok) throw new Error("Failed to fetch tasks");
             const data = await res.json();
             if (data.success) setTasks(data.tasks || []);
         } catch (error) {
             console.error("Error fetching tasks:", error);
+            toast.error("Failed to load tasks");
         }
     };
 
     useEffect(() => {
         fetchTasks();
+        // Refresh tasks every minute to update edit status
+        const interval = setInterval(fetchTasks, 60000);
+        return () => clearInterval(interval);
     }, [projectId]);
+
+    // Check if task is editable (within 24 hours)
+    const isTaskEditable = (createdAt: string): boolean => {
+        const created = new Date(createdAt);
+        const now = new Date();
+        const hoursDifference = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+        return hoursDifference <= 24;
+    };
+
+    // Get hours remaining for edit
+    const getHoursRemaining = (createdAt: string): number => {
+        const created = new Date(createdAt);
+        const now = new Date();
+        const hoursDifference = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+        return Math.max(0, Math.round((24 - hoursDifference) * 10) / 10);
+    };
 
     // Cancel editing and reset form
     const cancelEdit = () => {
@@ -44,29 +91,45 @@ const DailyTask = ({ projectId }: { projectId: string }) => {
 
     // Handle add or update task
     const handleSubmit = async () => {
-        if (!form.title?.trim() || !form.date) return;
+        if (!form.title?.trim() || !form.date) {
+            toast.error("Please fill in title and date");
+            return;
+        }
 
         setIsSubmitting(true);
 
         try {
-            const body = JSON.stringify(form);
-
             if (editingId) {
                 // Update existing task
-                const res = await fetch(`/api/project-tasks/${editingId}`, {
+                const res = await fetch(`/api/admin/project/daily-task/${editingId}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
-                    body,
+                    body: JSON.stringify(form),
                 });
-                if (!res.ok) throw new Error("Failed to update task");
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    if (res.status === 403) {
+                        toast.error(data.message || "Cannot edit: 24-hour limit exceeded");
+                    } else {
+                        throw new Error(data.message || "Failed to update task");
+                    }
+                    return;
+                }
+
+                toast.success("Task updated!");
             } else {
                 // Create new task
-                const res = await fetch(`/api/project-tasks`, {
+                const res = await fetch(`/api/admin/project/daily-task`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ ...form, projectId }),
                 });
+
                 if (!res.ok) throw new Error("Failed to create task");
+
+                toast.success("Task created!");
             }
 
             // Reset form and refresh list
@@ -75,7 +138,7 @@ const DailyTask = ({ projectId }: { projectId: string }) => {
             await fetchTasks();
         } catch (error) {
             console.error("Error saving task:", error);
-            // In a real app you would show a toast here
+            toast.error(error instanceof Error ? error.message : "Error saving task");
         } finally {
             setIsSubmitting(false);
         }
@@ -86,18 +149,25 @@ const DailyTask = ({ projectId }: { projectId: string }) => {
         if (!confirm("Delete this task permanently?")) return;
 
         try {
-            const res = await fetch(`/api/project-tasks/${id}`, {
+            const res = await fetch(`/api/admin/project/daily-task/${id}`, {
                 method: "DELETE",
             });
             if (!res.ok) throw new Error("Failed to delete task");
             await fetchTasks();
+            toast.success("Task deleted!");
         } catch (error) {
             console.error("Error deleting task:", error);
+            toast.error("Failed to delete task");
         }
     };
 
     // Start editing a task (populate form)
     const startEdit = (task: Task) => {
+        if (!isTaskEditable(task.createdAt)) {
+            toast.error("Cannot edit: 24-hour limit exceeded");
+            return;
+        }
+
         setEditingId(task.id);
         setForm({
             title: task.title,
@@ -108,15 +178,15 @@ const DailyTask = ({ projectId }: { projectId: string }) => {
         });
     };
 
-    // ── GROUP TASKS BY DATE (professional: YYYY-MM-DD keys + sorted) ──
+    // ── GROUP TASKS BY DATE ──
     const grouped = tasks.reduce((acc: Record<string, Task[]>, task) => {
-        const dateKey = new Date(task.date).toISOString().split("T")[0]; // Stable YYYY-MM-DD
+        const dateKey = new Date(task.date).toISOString().split("T")[0];
         if (!acc[dateKey]) acc[dateKey] = [];
         acc[dateKey].push(task);
         return acc;
     }, {});
 
-    const sortedDates = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
+    const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a)); // Most recent first
 
     const formatDateHeader = (dateKey: string) => {
         return new Date(dateKey).toLocaleDateString("en-US", {
@@ -129,6 +199,7 @@ const DailyTask = ({ projectId }: { projectId: string }) => {
 
     return (
         <div className="p-6 max-w-4xl mx-auto space-y-8">
+            {/* Form */}
             <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
                 <div className="flex flex-wrap gap-6 items-end text-black">
                     {/* Title */}
@@ -192,8 +263,7 @@ const DailyTask = ({ projectId }: { projectId: string }) => {
                         <button
                             onClick={handleSubmit}
                             disabled={isSubmitting || !form.title?.trim() || !form.date}
-                            className="px-8 py-4 bg-[var(--primary)] text-white font-semibold rounded-3xl transition-all flex items-center gap-2 shadow-inner"
-                        //    style={{ background: "var(--primary)" }}
+                            className="px-8 py-4 bg-[var(--primary)] text-white font-semibold rounded-3xl transition-all flex items-center gap-2 shadow-inner disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                             {isSubmitting ? (
                                 <>
@@ -229,7 +299,9 @@ const DailyTask = ({ projectId }: { projectId: string }) => {
                             {/* Date Header */}
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="text-blue-600">
-                                    <span className="text-2xl">📅</span>
+                                    <span className="text-2xl">
+                                        <Calendar className="w-8 h-8 text-gray-400" />
+                                    </span>
                                 </div>
                                 <h3 className="text-lg font-semibold text-gray-700">
                                     {formatDateHeader(dateKey)}
@@ -241,43 +313,80 @@ const DailyTask = ({ projectId }: { projectId: string }) => {
                                 </span>
                             </div>
 
-                            {/* Task Cards - Todo-list style */}
+                            {/* Task Cards */}
                             <div className="space-y-4">
-                                {grouped[dateKey].map((task) => (
-                                    <div
-                                        key={task.id}
-                                        className="group bg-white border border-gray-200 hover:border-gray-300 rounded-3xl p-6 flex gap-6 items-start transition-all duration-200 hover:shadow-md"
-                                    >
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-xl font-semibold text-gray-900 leading-tight break-words">
-                                                {task.title}
-                                            </p>
-                                            {task.description && (
-                                                <p className="mt-3 text-gray-600 text-[15px] leading-relaxed">
-                                                    {task.description}
-                                                </p>
-                                            )}
-                                        </div>
+                                {grouped[dateKey].map((task) => {
+                                    const canEdit = isTaskEditable(task.createdAt) || isAdmin;
+                                    const hoursRemaining = getHoursRemaining(task.createdAt);
+                                    const isOwnTask = currentUser?.id === task.createdBy?.id;
+                                    const isAdmin = currentUser?.role === "ADMIN";
 
-                                        {/* Actions */}
-                                        <div className="flex flex-col sm:flex-row items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => startEdit(task)}
-                                                className="p-3 hover:bg-blue-50 text-blue-600 rounded-2xl transition-colors"
-                                                title="Edit task"
-                                            >
-                                                <Pencil size={20} />
-                                            </button>
-                                            <button
-                                                onClick={() => deleteTask(task.id)}
-                                                className="p-3 hover:bg-red-50 text-red-600 rounded-2xl transition-colors"
-                                                title="Delete task"
-                                            >
-                                                <Trash2 size={20} />
-                                            </button>
+                                    return (
+                                        <div
+                                            key={task.id}
+                                            className={`group bg-white border rounded-3xl p-6 flex gap-6 items-start transition-all duration-200 ${canEdit
+                                                ? "border-gray-200 hover:border-gray-300 hover:shadow-md"
+                                                : "border-gray-200 bg-gray-50"
+                                                }`}
+                                        >
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xl font-semibold text-gray-900 leading-tight break-words">
+                                                    {task.title}
+                                                </p>
+                                                {task.description && (
+                                                    <p className="mt-3 text-gray-600 text-[15px] leading-relaxed">
+                                                        {task.description}
+                                                    </p>
+                                                )}
+                                                <div className="mt-2 text-xs text-gray-500">
+                                                    By {task.createdBy?.name || "Unknown"}
+                                                </div>
+
+                                                {/* Edit Status Indicator */}
+                                                {!canEdit && (
+                                                    <div className="mt-2 flex items-center gap-1 text-xs text-gray-500 bg-gray-100 w-fit px-2 py-1 rounded">
+                                                        <Lock size={12} />
+                                                        <span>Edit limit expired</span>
+                                                    </div>
+                                                )}
+
+                                                {canEdit && hoursRemaining < 2 && (
+                                                    <div className="mt-2 flex items-center gap-1 text-xs text-orange-600 bg-orange-50 w-fit px-2 py-1 rounded">
+                                                        <AlertCircle size={12} />
+                                                        <span>{hoursRemaining}h remaining</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Actions */}
+                                            <div className="flex flex-col sm:flex-row items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
+                                                {(isOwnTask && canEdit) || isAdmin ? (
+                                                    <>
+                                                        <button
+                                                            onClick={() => startEdit(task)}
+                                                            className="p-3 hover:bg-blue-50 text-blue-600 rounded-2xl transition-colors"
+                                                            title="Edit task"
+                                                        >
+                                                            <Pencil size={20} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => deleteTask(task.id)}
+                                                            className="p-3 hover:bg-red-50 text-red-600 rounded-2xl transition-colors"
+                                                            title="Delete task"
+                                                        >
+                                                            <Trash2 size={20} />
+                                                        </button>
+                                                    </>
+                                                ) : isOwnTask && !canEdit && !isAdmin ? (
+                                                    <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-2xl">
+                                                        <Lock size={16} className="text-gray-500" />
+                                                        <span className="text-xs text-gray-600 font-medium">Locked</span>
+                                                    </div>
+                                                ) : null}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     ))}

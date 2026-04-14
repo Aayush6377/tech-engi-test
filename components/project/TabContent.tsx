@@ -31,7 +31,7 @@ export default function TabContent({ activeTab, project }: any) {
       return <KanbanTab projectId={project.id} />;
 
     case "Credentials":
-      return <CredentialsTab />;
+      return <CredentialsTab projectId={project.id} />;
 
     case "Milestones":
       return <MilestoneTab projectId={project.id} />;
