@@ -36,7 +36,9 @@ model User {
   projectTasks         ProjectTask[]
   milestones           Milestone[]
   createdKanbanTasks   KanbanTask[] @relation("TaskCreator")
-  assignedKanbanTasks   KanbanTask[] @relation("TaskAssignee")
+  assignedKanbanTasks  KanbanTask[] @relation("TaskAssignee")
+  kanbanComments       KanbanComment[]
+  kanbanReports        KanbanReport[]
 }
 
 model ClientProfile {
@@ -422,7 +424,33 @@ model KanbanTask {
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 
+  comments KanbanComment[]
+  reports KanbanReport[]
+
   project     Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
   creator     User               @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   assignee    User?              @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+}
+
+model KanbanComment {
+  id        String     @id @default(uuid())
+  taskId    String
+  authorId  String
+  content   String     @db.Text
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  task      KanbanTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model KanbanReport {
+  id         String     @id @default(uuid())
+  taskId     String
+  reporterId String
+  message    String     @db.Text
+  createdAt  DateTime   @default(now())
+
+  task       KanbanTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  reporter   User       @relation(fields: [reporterId], references: [id], onDelete: Cascade)
 }

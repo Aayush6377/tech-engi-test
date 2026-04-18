@@ -6,19 +6,41 @@ import { uploadFile } from "@/lib/uploads";
 export async function GET(req: NextRequest) {
   try {
     const { user, error } = await getUser();
-    if (error || !user){
-        return NextResponse.json({ success: false, message: error || "Unauthorized" }, { status: 401 });
-    }
+    if (error || !user) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = new URL(req.url);
     const projectId = searchParams.get("projectId");
+    const searchQuery = searchParams.get("search");
 
     if (!projectId){
         return NextResponse.json({ success: false, message: "Project ID is required" }, { status: 400 });
     }
 
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: { client: true, engineer: true }
+    });
+
+    if (!project){
+        return NextResponse.json({ success: false, message: "Project not found" }, { status: 404 });
+    }
+
+    const isParticipant = user.role === "ADMIN" || 
+                          (user.role === "CLIENT" && project.client?.userId === user.id) || 
+                          (user.role === "ENGINEER" && project.engineer?.userId === user.id);
+
+    if (!isParticipant) {
+      return NextResponse.json({ success: false, message: "You do not have access to this project's board." }, { status: 403 });
+    }
+
+    const whereClause: any = { projectId };
+    
+    if (searchQuery && searchQuery.trim() !== "") {
+      whereClause.title = { contains: searchQuery.trim(), mode: "insensitive" };
+    }
+
     const tasks = await prisma.kanbanTask.findMany({
-      where: { projectId },
+      where: whereClause,
       orderBy: { createdAt: "desc" },
       include: {
         assignee: { select: { name: true, image: true } },
@@ -35,13 +57,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const { user, error } = await getUser();
-    if (error || !user){
-        return NextResponse.json({ success: false, message: error || "Unauthorized" }, { status: 401 });
-    }
-
-    if (user.role !== "CLIENT" && user.role !== "ENGINEER") {
-      return NextResponse.json({ success: false, message: "Only clients and engineers can create tasks" }, { status: 403 });
-    }
+    if (error || !user) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
 
     const formData = await req.formData();
     const projectId = formData.get("projectId") as string;
@@ -49,6 +65,22 @@ export async function POST(req: NextRequest) {
     
     if (!projectId || !title) {
       return NextResponse.json({ success: false, message: "Project ID and Title are required" }, { status: 400 });
+    }
+
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: { client: true, engineer: true }
+    });
+
+    if (!project){
+        return NextResponse.json({ success: false, message: "Project not found" }, { status: 404 });
+    }
+
+    const isParticipant = (user.role === "CLIENT" && project.client?.userId === user.id) || 
+                          (user.role === "ENGINEER" && project.engineer?.userId === user.id);
+
+    if (!isParticipant) {
+      return NextResponse.json({ success: false, message: "You are not a participant in this project." }, { status: 403 });
     }
 
     const description = formData.get("description") as string | null;
@@ -67,7 +99,7 @@ export async function POST(req: NextRequest) {
       uploadedUrls = await Promise.all(uploadPromises);
     }
 
-    await prisma.kanbanTask.create({
+    const task = await prisma.kanbanTask.create({
       data: {
         projectId,
         creatorId: user.id,
@@ -83,7 +115,7 @@ export async function POST(req: NextRequest) {
       include: { assignee: { select: { name: true, image: true } } }
     });
 
-    return NextResponse.json({ success: true, message: "Task created successfully" }, { status: 201 });
+    return NextResponse.json({ success: true, message: "Task created successfully", task }, { status: 201 });
   } catch {
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
