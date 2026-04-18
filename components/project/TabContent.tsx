@@ -14,7 +14,8 @@ import ClientUpdate from "./ClientUpdate";
 import ChatTab from "./ChatTab";
 import CredentialsTab from "./CredentialsTab";
 import DailyTask from "./DailyTask";
-
+import PayoutTab from "./PayoutEngineer";
+import Payout from "./Payout";
 export default function TabContent({ activeTab, project }: any) {
 
   switch (activeTab) {
@@ -52,7 +53,9 @@ export default function TabContent({ activeTab, project }: any) {
       return <ChatTab projectId={project.id} />;
 
     case "Payout":
-      return <ClientUpdate projectId={project.id} />
+      return <Payout projectId={project.id} />
+
+      // return <ClientUpdate projectId={project.id} />
 
     // default:
     //   return <OverviewTab project={project} />;
