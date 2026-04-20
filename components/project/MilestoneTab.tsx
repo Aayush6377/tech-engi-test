@@ -417,7 +417,7 @@ export default function MilestoneTab({ projectId }: any) {
         >
           Milestones
         </h2>
-        {currentUser?.role === "ENGINEER" && (
+        {currentUser?.role !== "CLIENT" && (
           <button
             onClick={() => setOpen(true)}
             className="px-4 py-2 text-white rounded-lg flex items-center gap-2 font-inter text-sm"
@@ -543,7 +543,7 @@ export default function MilestoneTab({ projectId }: any) {
                   </span>
                 </div>
               </div>
-              {currentUser?.role === "ENGINEER" && (
+              {currentUser?.role !== "CLIENT" && (
                 <div className="self-end space-x-2">
                   <button
                     onClick={() => {
@@ -593,7 +593,7 @@ export default function MilestoneTab({ projectId }: any) {
                 className="text-lg font-semibold font-inter"
                 style={{ color: "var(--text-primary)" }}
               >
-                {currentUser?.role === "ENGINEER"
+                {currentUser?.role !== "CLIENT"
                   ? editMode
                     ? "Edit Milestone"
                     : "Add Milestone"
@@ -626,7 +626,7 @@ export default function MilestoneTab({ projectId }: any) {
                     setNewMilestone({ ...newMilestone, title: e.target.value })
                   }
                   className={inputCls}
-                  disabled={uploading || currentUser?.role !== "ENGINEER"}
+                  disabled={uploading || currentUser?.role === "CLIENT"}
                 />
               </div>
 
@@ -642,7 +642,7 @@ export default function MilestoneTab({ projectId }: any) {
                     setNewMilestone({ ...newMilestone, type: e.target.value })
                   }
                   disabled={
-                    uploading || currentUser?.role !== "ENGINEER" || editMode
+                    uploading || currentUser?.role === "CLIENT" || editMode
                   }
                   // 🔥 lock type in edit mode (important)
                 >
@@ -669,7 +669,7 @@ export default function MilestoneTab({ projectId }: any) {
                       })
                     }
                     className={inputCls}
-                    disabled={uploading || currentUser?.role !== "ENGINEER"}
+                    disabled={uploading || currentUser?.role === "CLIENT"}
                   />
                 </div>
               ) : (
@@ -682,7 +682,7 @@ export default function MilestoneTab({ projectId }: any) {
                     type="file"
                     onChange={(e) => setFile(e.target.files?.[0] || null)}
                     className="w-full text-sm font-inter"
-                    disabled={uploading || currentUser?.role !== "ENGINEER"}
+                    disabled={uploading || currentUser?.role === "CLIENT"}
                   />
 
                   {/* EXISTING FILE PREVIEW (EDIT MODE) */}
@@ -704,7 +704,7 @@ export default function MilestoneTab({ projectId }: any) {
             </div>
 
             {/* ACTIONS */}
-            {currentUser?.role === "ENGINEER" && (
+            {currentUser?.role !== "CLIENT" && (
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   onClick={() => {

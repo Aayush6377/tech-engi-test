@@ -46,8 +46,8 @@ export const engineerRejectionTemplate = (name: string, reason: string) => {
 export const projectInvitationTemplate = (
   name: string,
   projectTitle: string,
-  projectDescription: string,
-  engineerEarnings: number
+  projectDescription: string = "",
+  engineerEarnings: number = 0
 ) => {
   const dashboardUrl = `${process.env.NEXTAUTH_URL}/dashboard/engineer/invitations`;
 

@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
 
     if (isClient) {
       whereClause.OR = [
-        { raisedById: user.id },
+        { raisedById: project?.engineer?.userId },
         { target: "CLIENT" }
       ];
     } else if (isEngineer) {

@@ -52,7 +52,6 @@ async function main() {
         description: "Need a microcontroller-based system to read DHT11 sensors and control AC units via relays.",
         budget: 10000,
         instruments: ["Arduino", "DHT11", "Relay Module", "ESP8266"],
-        roadmapFiles: [],
         advancePaid: false,
         status: ProjectStatus.AWAITING_ADVANCE,
       }
@@ -65,7 +64,6 @@ async function main() {
         description: "Looking for an expert to write custom PID loops for a quadcopter using STM32.",
         budget: 25000,
         instruments: ["STM32", "IMU MPU6050", "C++", "ESC"],
-        roadmapFiles: [],
         advancePaid: false,
         status: ProjectStatus.AWAITING_ADVANCE,
       }
@@ -78,7 +76,6 @@ async function main() {
         description: "Design a 4-layer PCB for a smartwatch prototype.",
         budget: 10000,
         instruments: ["Altium", "Eagle", "KiCad", "SMD Soldering"],
-        roadmapFiles: [],
         advancePaid: false,
         status: ProjectStatus.AWAITING_ADVANCE,
       }

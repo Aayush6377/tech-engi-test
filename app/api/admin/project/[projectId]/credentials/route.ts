@@ -64,7 +64,7 @@ export async function GET(
         // Fetch only CREDENTIALS-type resources that are locked (i.e., credential resources)
         const credentials = await prisma.projectResource.findMany({
             where: {
-                projectId: params.projectId,
+                projectId: projectId,
                 type: "CREDENTIALS",
             },
             select: {

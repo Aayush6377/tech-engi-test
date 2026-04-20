@@ -482,7 +482,7 @@ export default function ProjectsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [showCreate, setShowCreate] = useState(false);
-  const { user } = useAuth();
+  const { user } = useAuth() as {user: User};
   
   const fetchProjects = async () => {
     if (!user) return;

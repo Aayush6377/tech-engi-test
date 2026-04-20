@@ -954,8 +954,8 @@ export default function KanbanTab({ projectId }: KanbanTabProps) {
                   style={{ color: "var(--text-primary)" }}
                 />
               </div>
-              {/* {
-                currentUser?.role!=="CLIENT" &&  */}
+              {
+                currentUser?.role!=="CLIENT" && 
                 <button
                 onClick={() => setShowNewTaskModal(true)}
                 className="px-4 py-2 text-white rounded-lg font-inter text-sm flex items-center gap-2"
@@ -964,7 +964,7 @@ export default function KanbanTab({ projectId }: KanbanTabProps) {
                 <Plus className="w-4 h-4" />
                 New Task
               </button>
-              {/* } */}
+              }
             </div>
           </div>
         </div>
@@ -1026,17 +1026,23 @@ export default function KanbanTab({ projectId }: KanbanTabProps) {
                         draggedTask?.id === task.id ? "opacity-50" : ""
                       }`}
                     >
-                      <div className="flex items-start justify-between mb-3">
+                      <div className="flex flex-col gap-4 items-start justify-between mb-3">
                         <h3
                           className="font-semibold font-inter line-clamp-2"
                           style={{ color: "var(--text-primary)" }}
                         >
                           {task.title}
                         </h3>
+                        <p
+                          className="font-inter text-sm line-clamp-2"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          {task.description}
+                        </p>
                         <span
                           className={`px-2 py-1 rounded-md text-xs font-medium border ${
                             priorityClasses[task.priority]
-                          } flex-shrink-0 ml-2`}
+                          } flex-shrink-0`}
                         >
                           {task.priority}
                         </span>
