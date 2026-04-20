@@ -24,14 +24,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ proj
     if (!project) {
       return NextResponse.json({ success: false, message: "Project not found" }, { status: 404 });
     }
-    const isAdmin = user.role === "ADMIN";
 
     const isParticipant = user.role === "ADMIN" || 
     (user.role === "CLIENT" && project.client?.userId === user.id) ||
     (user.role === "ENGINEER" && project.engineer?.userId === user.id);
 
-    if (!isParticipant && !isAdmin) {
-      return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+    if (!isParticipant) {
+      return NextResponse.json({ success: false, message: "You don't have permission to view this project" }, { status: 403 });
     }
 
     const messages = await prisma.chatMessage.findMany({

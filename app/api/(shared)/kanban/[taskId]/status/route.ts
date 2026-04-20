@@ -16,25 +16,29 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ ta
 
     const existingTask = await prisma.kanbanTask.findUnique({
       where: { id: taskId },
-      include: { project: { include: { engineer: true } } }
+      include: { project: { include: { engineer: true, client: true } } }
     });
 
     if (!existingTask){
         return NextResponse.json({ success: false, message: "Task not found" }, { status: 404 });
     }
 
-    const isProjectEngineer = user.role === "ENGINEER" && existingTask.project.engineer?.userId === user.id;
-    
-    if (user.role !== "ADMIN" && !isProjectEngineer) {
-      return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+    const project = existingTask.project;
+
+    const isParticipant = user.role === "ADMIN" || 
+    (user.role === "CLIENT" && project.client?.userId === user.id) ||
+    (user.role === "ENGINEER" && project.engineer?.userId === user.id);
+
+    if (!isParticipant) {
+      return NextResponse.json({ success: false, message: "You don't have permission to update this task" }, { status: 403 });
     }
 
-    const updatedTask = await prisma.kanbanTask.update({
+    await prisma.kanbanTask.update({
       where: { id: taskId },
       data: { status }
     });
 
-    return NextResponse.json({ success: true, message: "Status updated", task: updatedTask }, { status: 200 });
+    return NextResponse.json({ success: true, message: "Status updated successfully" }, { status: 200 });
   } catch {
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }

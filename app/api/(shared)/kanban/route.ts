@@ -26,8 +26,8 @@ export async function GET(req: NextRequest) {
     }
 
     const isParticipant = user.role === "ADMIN" || 
-                          (user.role === "CLIENT" && project.client?.userId === user.id) || 
-                          (user.role === "ENGINEER" && project.engineer?.userId === user.id);
+    (user.role === "CLIENT" && project.client?.userId === user.id) ||
+    (user.role === "ENGINEER" && project.engineer?.userId === user.id);
 
     if (!isParticipant) {
       return NextResponse.json({ success: false, message: "You do not have access to this project's board." }, { status: 403 });
@@ -76,8 +76,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, message: "Project not found" }, { status: 404 });
     }
 
-    const isParticipant = (user.role === "CLIENT" && project.client?.userId === user.id) || 
-                          (user.role === "ENGINEER" && project.engineer?.userId === user.id);
+    const isParticipant = user.role === "ADMIN" || 
+    (user.role === "CLIENT" && project.client?.userId === user.id) ||
+    (user.role === "ENGINEER" && project.engineer?.userId === user.id);
 
     if (!isParticipant) {
       return NextResponse.json({ success: false, message: "You are not a participant in this project." }, { status: 403 });

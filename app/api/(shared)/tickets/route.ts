@@ -30,7 +30,9 @@ export async function GET(req: NextRequest) {
     const isClient = user.role === "CLIENT" && project.client?.userId === user.id;
     const isEngineer = user.role === "ENGINEER" && project.engineer?.userId === user.id;
 
-    if (!isClient && !isEngineer) {
+    const isParticipant = user.role === "ADMIN" || isClient || isEngineer;
+
+    if (!isParticipant) {
       return NextResponse.json({ success: false, message: "You are not a participant in this project" }, { status: 403 });
     }
 

@@ -26,11 +26,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, message: "Project not found" }, { status: 404 });
     }
 
-    const isParticipant = (user.role === "CLIENT" && project.client?.userId === user.id) || 
-                          (user.role === "ENGINEER" && project.engineer?.userId === user.id) || user.role === "ADMIN";
+    const isParticipant = user.role === "ADMIN" || 
+    (user.role === "CLIENT" && project.client?.userId === user.id) ||
+    (user.role === "ENGINEER" && project.engineer?.userId === user.id);
 
     if (!isParticipant) {
-      return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ success: false, message: "You don't have permission to view this project" }, { status: 403 });
     }
 
     const milestones = await prisma.milestone.findMany({
@@ -40,8 +41,7 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true, milestones }, { status: 200 });
-  } catch (e) {
-    console.log(e);
+  } catch {
     return NextResponse.json({ success: false, message: "Internal Server error" }, { status: 500 });
   }
 }
@@ -67,9 +67,13 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, message: "Project not found" }, { status: 404 });
     }
 
-    const isParticipant = (user.role === "ENGINEER" && project.engineer?.userId === user.id);
+    const isParticipant = user.role === "ADMIN" || 
+    (user.role === "CLIENT" && project.client?.userId === user.id) ||
+    (user.role === "ENGINEER" && project.engineer?.userId === user.id);
 
-    if (!isParticipant) return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+    if (!isParticipant){
+      return NextResponse.json({ success: false, message: "You don't have permission to add a milestone" }, { status: 403 });
+    }
 
     let content = "";
 
@@ -92,8 +96,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true, message: "Milestone added successfully" }, { status: 201 });
-  } catch(error: any) {
-    console.log(error.message);
+  } catch {
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

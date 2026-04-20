@@ -17,7 +17,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ task
       include: {
         assignee: { select: { id: true, name: true, image: true } },
         creator: { select: { id: true, name: true, role: true } },
-        project: { select: { id: true, title: true } },
+        project: { select: { id: true, title: true, client: true, engineer: true } },
         comments: {
           orderBy: { createdAt: "asc" },
           include: { author: { select: { id: true, name: true, image: true, role: true } } }
@@ -31,6 +31,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ task
 
     if (!task){
       return NextResponse.json({ success: false, message: "Task not found" }, { status: 404 });
+    }
+
+    const project = task.project;
+
+    const isParticipant = user.role === "ADMIN" || 
+    (user.role === "CLIENT" && project.client?.userId === user.id) ||
+    (user.role === "ENGINEER" && project.engineer?.userId === user.id);
+
+    if (!isParticipant) {
+      return NextResponse.json({ success: false, message: "You do not have access to this project's board." }, { status: 403 });
     }
 
     return NextResponse.json({ success: true, task }, { status: 200 });
@@ -59,8 +69,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ task
         return NextResponse.json({ success: false, message: "Task not found" }, { status: 404 });
     }
 
-    if (existingTask.creatorId !== user.id) {
-      return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+    const isParticipant = user.role === "ADMIN" || (existingTask.creatorId !== user.id);
+
+    if (!isParticipant) {
+      return NextResponse.json({ success: false, message: "You can only update your own tasks" }, { status: 403 });
     }
 
     const title = formData.get("title") as string;
@@ -126,8 +138,10 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ t
         return NextResponse.json({ success: false, message: "Task not found" }, { status: 404 });
     }
 
-    if (task.creatorId !== user.id) {
-      return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+    const isParticipant = user.role === "ADMIN" || (task.creatorId !== user.id);
+
+    if (!isParticipant) {
+      return NextResponse.json({ success: false, message: "You can only delete your own tasks" }, { status: 403 });
     }
 
     if (task.attachments && task.attachments.length > 0) {

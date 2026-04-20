@@ -28,11 +28,12 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ success: false, message: "Project not found" }, { status: 404 });
     }
 
-    const isParticipant = (user.role === "CLIENT" && project.client?.userId === user.id) || 
-                          (user.role === "ENGINEER" && project.engineer?.userId === user.id);
+    const isParticipant = user.role === "ADMIN" || 
+    (user.role === "CLIENT" && project.client?.userId === user.id) ||
+    (user.role === "ENGINEER" && project.engineer?.userId === user.id);
 
     if (!isParticipant){
-        return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+        return NextResponse.json({ success: false, message: "You don't have permission to view this project" }, { status: 403 });
     }
 
     let typeFilter: any = {};
@@ -102,10 +103,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, message: "Project not found" }, { status: 404 });
     }
 
-    const isParticipant = (user.role === "CLIENT" && project.client?.userId === user.id) || (user.role === "ENGINEER" && project.engineer?.userId === user.id);
+    const isParticipant = user.role === "ADMIN" || 
+    (user.role === "CLIENT" && project.client?.userId === user.id) ||
+    (user.role === "ENGINEER" && project.engineer?.userId === user.id);
 
     if (!isParticipant){
-        return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+        return NextResponse.json({ success: false, message: "You don't have permission to add a resource" }, { status: 403 });
     }
 
     let finalContent = "";

@@ -21,8 +21,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ mi
       return NextResponse.json({ success: false, message: "Milestone not found" }, { status: 404 });
     }
 
-    if (existingMilestone.addedById !== user.id && user.role !== "ADMIN") {
-      return NextResponse.json({ success: false, message: "You can only view your own milestones" }, { status: 403 });
+    const isParticipant = user.role === "ADMIN" || (existingMilestone.addedById !== user.id);
+
+    if (!isParticipant) {
+      return NextResponse.json({ success: false, message: "You can only update your own milestones" }, { status: 403 });
     }
 
     let content = existingMilestone.content;
@@ -59,8 +61,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ mi
 
     return NextResponse.json({ success: true, message: "Milestone updated" }, { status: 200 });
 
-  } catch(error: any) {
-    console.log(error.message);
+  } catch {
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }
@@ -79,7 +80,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ m
       return NextResponse.json({ success: false, message: "Milestone not found" }, { status: 404 });
     }
 
-    if (milestone.addedById !== user.id  && user.role !== "ADMIN") {
+    const isParticipant = user.role === "ADMIN" || (milestone.addedById !== user.id);
+
+    if (!isParticipant) {
       return NextResponse.json({ success: false, message: "You can only delete your own milestones" }, { status: 403 });
     }
 

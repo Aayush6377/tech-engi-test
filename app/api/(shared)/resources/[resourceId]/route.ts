@@ -26,8 +26,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ reso
 
     const project = resource.project;
 
-    const isParticipant = (user.role === "CLIENT" && project.clientId === user.clientProfile?.id) || 
-                          (user.role === "ENGINEER" && project.engineerId === user.engineerProfile?.id);
+    const isParticipant =  user.role === "ADMIN" || 
+    (user.role === "CLIENT" && project.clientId === user.clientProfile?.id) || 
+    (user.role === "ENGINEER" && project.engineerId === user.engineerProfile?.id);
 
     if (!isParticipant){
         return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
@@ -62,7 +63,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ reso
         return NextResponse.json({ success: false, message: "Resource not found" }, { status: 404 });
     }
 
-    if (existingResource.addedById !== user.id) {
+    const isParticipant =  user.role === "ADMIN" || (existingResource.addedById !== user.id);
+
+    if (!isParticipant){
       return NextResponse.json({ success: false, message: "You can only edit your own resources" }, { status: 403 });
     }
 
@@ -127,7 +130,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ r
         return NextResponse.json({ success: false, message: "Resource not found" }, { status: 404 });
     }
 
-    if (existingResource.addedById !== user.id) {
+    const isParticipant =  user.role === "ADMIN" || (existingResource.addedById !== user.id);
+
+    if (!isParticipant){
       return NextResponse.json({ success: false, message: "You can only delete your own resources" }, { status: 403 });
     }
 
