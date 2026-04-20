@@ -18,8 +18,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ proj
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
-        client: { include: { user: { select: { name: true, email: true, image: true, phone: true } } } },
-        engineer: { include: { user: { select: { name: true, email: true, image: true, phone: true } } } },
+        client: { include: { user: { select: { name: true, email: true, image: true } } } },
+        engineer: { include: { user: { select: { name: true, email: true, image: true } } } },
         resources: { orderBy: { createdAt: "desc" } },
         cancellationRequests: { include: { requestedBy: { select: { name: true, role: true } } } },
         invitations: {

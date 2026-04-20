@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/app/hooks/useAuth";
 import DashboardShell from "@/components/layout/DashboardShell";
 import { Plus, Search, Filter, Users, Calendar, Clock, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -478,7 +479,6 @@ export default function ProjectsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [showCreate, setShowCreate] = useState(false);
-
   const fetchProjects = async () => {
     setLoading(true);
     try {
@@ -517,9 +517,9 @@ export default function ProjectsPage() {
               Overview of all client projects
             </p>
           </div>
-          <button onClick={() => setShowCreate(true)} className="px-4 py-2 text-white rounded-lg flex items-center gap-2 font-inter text-sm font-semibold" style={{ background: "var(--primary)" }}>
+            {/* <button onClick={() => setShowCreate(true)} className="px-4 py-2 text-white rounded-lg flex items-center gap-2 font-inter text-sm font-semibold" style={{ background: "var(--primary)" }}>
             <Plus size={15} /> New Project
-          </button>
+          </button> */}
         </div>
 
         {/* Stats */}

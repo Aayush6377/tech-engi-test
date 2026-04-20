@@ -21,6 +21,7 @@ const ADMIN_NAV: NavItem[] = [
   { label: "Projects", icon: <FolderKanban size={18} />, href: "/admin/project" },
   { label: "Client Management", icon: <User size={18} />, href: "/admin/client-management" },
   { label: "Engineer Management", icon: <UserKeyIcon size={18} />, href: "/admin/engineer-management" },
+  { label: "Invitations Management", icon: <UserKeyIcon size={18} />, href: "/admin/invitations-management" },
   { label: "Payment", icon: <CreditCard size={18} />, href: "/admin/payment" },
   { label: "Customers", icon: <Users size={18} />, href: "/admin/customers" },
   { label: "Message", icon: <MessageSquare size={18} />, href: "/admin/message" },];
