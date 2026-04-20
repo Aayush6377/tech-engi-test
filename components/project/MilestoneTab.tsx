@@ -129,78 +129,78 @@ export default function MilestoneTab({ projectId }: any) {
   //   }
   // };
 
-const editMilestone = async () => {
-  if (!newMilestone.title.trim()) {
-    toast.error("Title is required");
-    return;
-  }
-
-  if (newMilestone.type === "LINK" && !newMilestone.content?.trim()) {
-    toast.error("URL required");
-    return;
-  }
-
-  try {
-    setUploading(true);
-
-    const formData = new FormData();
-
-    formData.append("id", editingId!);
-    formData.append("title", newMilestone.title);
-    formData.append("type", newMilestone.type);
-
-    // 🔥 HANDLE CONTENT PROPERLY
-    if (newMilestone.type === "LINK") {
-      let url = newMilestone.content.trim();
-
-      if (!url.startsWith("http")) {
-        url = "https://" + url;
-      }
-
-      formData.append("content", url);
-    } else {
-      if (file) {
-        // new file uploaded
-        formData.append("file", file);
-      } else if (newMilestone.content) {
-        // keep old file URL
-        formData.append("content", newMilestone.content);
-      }
+  const editMilestone = async () => {
+    if (!newMilestone.title.trim()) {
+      toast.error("Title is required");
+      return;
     }
 
-    const res = await fetch(`/api/milestones/${editingId}`, {
-      method: "PATCH",
-      body: formData,
-    });
+    if (newMilestone.type === "LINK" && !newMilestone.content?.trim()) {
+      toast.error("URL required");
+      return;
+    }
 
-    const data = await res.json();
+    try {
+      setUploading(true);
 
-    if (data.success) {
-      toast.success("Milestone updated!");
+      const formData = new FormData();
 
-      // ✅ RESET STATE CLEANLY
-      setOpen(false);
-      setEditMode(false);
-      setEditingId(null);
-      setFile(null);
+      formData.append("id", editingId!);
+      formData.append("title", newMilestone.title);
+      formData.append("type", newMilestone.type);
 
-      setNewMilestone({
-        title: "",
-        type: "IMAGE",
-        content: "",
-        status: "PENDING"
+      // 🔥 HANDLE CONTENT PROPERLY
+      if (newMilestone.type === "LINK") {
+        let url = newMilestone.content.trim();
+
+        if (!url.startsWith("http")) {
+          url = "https://" + url;
+        }
+
+        formData.append("content", url);
+      } else {
+        if (file) {
+          // new file uploaded
+          formData.append("file", file);
+        } else if (newMilestone.content) {
+          // keep old file URL
+          formData.append("content", newMilestone.content);
+        }
+      }
+
+      const res = await fetch(`/api/milestones/${editingId}`, {
+        method: "PATCH",
+        body: formData,
       });
 
-      await fetchMilestones();
-    } else {
-      toast.error(data.message || "Failed to update milestone");
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success("Milestone updated!");
+
+        // ✅ RESET STATE CLEANLY
+        setOpen(false);
+        setEditMode(false);
+        setEditingId(null);
+        setFile(null);
+
+        setNewMilestone({
+          title: "",
+          type: "IMAGE",
+          content: "",
+          status: "PENDING",
+        });
+
+        await fetchMilestones();
+      } else {
+        toast.error(data.message || "Failed to update milestone");
+      }
+    } catch {
+      toast.error("Error updating milestone");
+    } finally {
+      setUploading(false); // ✅ ALWAYS resets now
     }
-  } catch {
-    toast.error("Error updating milestone");
-  } finally {
-    setUploading(false); // ✅ ALWAYS resets now
-  }
-};
+  };
 
   const deleteMilestone = async (id: string) => {
     if (!confirm("Delete this milestone?")) return;
@@ -543,39 +543,41 @@ const editMilestone = async () => {
                   </span>
                 </div>
               </div>
-              <div className="self-end space-x-2">
-                <button
-                  onClick={() => {
-                    openEditModal(m);
-                  }}
-                  className="bg-[var(--primary)] rounded-lg px-4 py-2"
-                >
-                  Edit
-                </button>
-                <button
-                  disabled={deleting}
-                  onClick={() => deleteMilestone(m.id)}
-                  className="bg-[var(--destructive)] rounded-lg px-4 py-2"
-                >
-                  {deleting ? "Deleting..." : "Delete"}
-                </button>
-                {m.completed ? (
+              {currentUser.role === "ENGINEER" && (
+                <div className="self-end space-x-2">
                   <button
-                    disabled={true}
-                    className="bg-[var(--primary)] uppercase rounded-lg px-4 py-2"
-                  >
-                    completed
-                  </button>
-                ) : (
-                  <button
-                    disabled={completing}
-                    onClick={() => completeMileStone(m.id)}
+                    onClick={() => {
+                      openEditModal(m);
+                    }}
                     className="bg-[var(--primary)] rounded-lg px-4 py-2"
                   >
-                    {completing ? "Completing..." : "Mark as Completed"}
+                    Edit
                   </button>
-                )}
-              </div>
+                  <button
+                    disabled={deleting}
+                    onClick={() => deleteMilestone(m.id)}
+                    className="bg-[var(--destructive)] rounded-lg px-4 py-2"
+                  >
+                    {deleting ? "Deleting..." : "Delete"}
+                  </button>
+                  {m.completed ? (
+                    <button
+                      disabled={true}
+                      className="bg-[var(--primary)] uppercase rounded-lg px-4 py-2"
+                    >
+                      completed
+                    </button>
+                  ) : (
+                    <button
+                      disabled={completing}
+                      onClick={() => completeMileStone(m.id)}
+                      className="bg-[var(--primary)] rounded-lg px-4 py-2"
+                    >
+                      {completing ? "Completing..." : "Mark as Completed"}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
