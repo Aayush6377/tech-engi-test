@@ -2,30 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUser } from "@/lib/auth";
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
+export async function GET( req: NextRequest, { params }: { params: Promise<{ projectId: string }> } ) {
   try {
     const { user, error } = await getUser();
     if (error || !user) {
-      return NextResponse.json(
-        { success: false, message: error || "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: error || "Unauthorized" }, { status: 401 });
     }
-    const { projectId } = await params;
-    const project = await prisma.project.findUnique({
-      where: {
-        id: projectId,
-      },
-    });
+    const { projectId } = await params; 
+
+    const project = await prisma.project.findUnique({ where: { id: projectId } });
+
     if (!project) {
-      return NextResponse.json({
-        success: false,
-        message: "Project Not Found!",
-      });
+      return NextResponse.json({ success: false, message: "Project Not Found" }, { status: 404 });
     }
+
     const transactions = await prisma.transaction.findMany({
       where: { projectId: projectId },
       orderBy: { createdAt: "desc" },
@@ -35,20 +25,18 @@ export async function GET(
     let stats = {};
 
     if (user.role === "ENGINEER") {
-      let totalAmount = 0;
+      let totalReceived = 0;
+      let totalPending = 0;
 
       for (const t of transactions) {
         if (t.type === "PAYOUT_ENGINEER") {
-          if (t.status === "SUCCESS" && t.userId === project!.clientId)
-            totalAmount += t.amount;
+          if (t.status === "SUCCESS") totalReceived += t.amount;
+          if (t.status === "PENDING") totalPending += t.amount;
         }
       }
 
-      stats = {
-        budget: project!.budget,
-        amountPaid: 0 - totalAmount,
-        remaining: project!.budget - totalAmount,
-      };
+      stats = { budget: project.budget * 0.7, amountPaid: totalReceived, amountPending: totalPending };
+
     } else if (user.role === "CLIENT") {
       let totalAmount = 0;
 
@@ -58,9 +46,9 @@ export async function GET(
             totalAmount += t.amount;
         }
       }
-      const lastTransaction = transactions.filter(
-        (transaction) => transaction.status === "SUCCESS"
-      )?.[0];
+
+      const lastTransaction = transactions.filter( (transaction) => transaction.status === "SUCCESS" )?.[0];
+
       stats = {
         remaining: project!.budget - totalAmount,
         budget: project.budget,
@@ -70,34 +58,32 @@ export async function GET(
         progress: project.progress,
         approved: project!.status === "COMPLETED",
       };
+
     } else if (user.role === "ADMIN") {
       const clientProfile = await prisma.clientProfile.findUnique({
-        where: {
-          id: project.clientId,
-        },
+        where: { id: project.clientId },
         include: { user: true },
       });
+
       const engineerProfile = await prisma.engineerProfile.findUnique({
-        where: {
-          id: project.engineerId ?? undefined,
-        },
+        where: { id: project.engineerId ?? undefined },
         include: { user: { include: { payoutDetail: true } } },
       });
+
       const users = [];
       if (clientProfile?.user) {
         users.push(clientProfile.user);
       }
+
       if (engineerProfile?.user) {
         users.push(engineerProfile.user);
       }
+
       const totalReceived = transactions.reduce((acc, transaction) => {
-        const amount =
-          transaction.userId === project.clientId &&
-          transaction.status === "SUCCESS"
-            ? transaction.amount
-            : 0;
+        const amount = transaction.userId === project.clientId && transaction.status === "SUCCESS" ? transaction.amount : 0;
         return acc + amount;
       }, 0);
+
       stats = {
         users: users,
         budget: project.budget,
@@ -107,11 +93,8 @@ export async function GET(
       };
     }
 
-    return NextResponse.json({ success: true, stats }, { status: 200 });
+    return NextResponse.json({ success: true, stats, transactions }, { status: 200 });
   } catch {
-    return NextResponse.json(
-      { success: false, message: "Internal Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json( { success: false, message: "Internal Server error" }, { status: 500 } );
   }
 }

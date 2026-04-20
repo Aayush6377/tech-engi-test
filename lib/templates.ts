@@ -240,3 +240,34 @@ export const payoutDetailsRequiredTemplate = (projectTitle: string, amount: numb
     <p>Best regards,<br/><b>The Platform Team</b></p>
   </div>
 `;
+
+export const adminForceDeletionTemplate = (
+  userName: string,
+  projectName: string,
+  amount: number,
+  isEngineer: boolean
+) => {
+  const heading = isEngineer ? "Notice: Project Removed" : "Project Removed by Administrator";
+  
+  const projectContext = isEngineer 
+    ? `The project <b>${projectName}</b> you were assigned to` 
+    : `Your project <b>${projectName}</b>`;
+    
+  const financialAction = isEngineer
+    ? `Compensation of <b>₹${amount}</b> has been credited to your pending payouts.`
+    : `A refund of <b>₹${amount}</b> has been initiated to your account.`;
+
+  const supportText = isEngineer 
+    ? "" 
+    : `<p>If you have any questions or believe this was an error, please contact support.</p>`;
+
+  return `
+    <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+      <h3 style="color: #d9534f;">${heading}</h3>
+      <p>Hello ${userName},</p>
+      <p>${projectContext} has been removed by the platform administrator.</p>
+      <p>${financialAction}</p>
+      ${supportText}
+    </div>
+  `;
+};

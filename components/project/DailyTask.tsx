@@ -50,7 +50,7 @@ const DailyTask = ({ projectId }: { projectId: string }) => {
     // Fetch all tasks for the project
     const fetchTasks = async () => {
         try {
-            const res = await fetch(`/api/admin/project/daily-task?projectId=${projectId}`);
+            const res = await fetch(`/api/daily-task?projectId=${projectId}`);
             if (!res.ok) throw new Error("Failed to fetch tasks");
             const data = await res.json();
             if (data.success) setTasks(data.tasks || []);
@@ -101,7 +101,7 @@ const DailyTask = ({ projectId }: { projectId: string }) => {
         try {
             if (editingId) {
                 // Update existing task
-                const res = await fetch(`/api/admin/project/daily-task/${editingId}`, {
+                const res = await fetch(`/api/daily-task/${editingId}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(form),
@@ -121,7 +121,7 @@ const DailyTask = ({ projectId }: { projectId: string }) => {
                 toast.success("Task updated!");
             } else {
                 // Create new task
-                const res = await fetch(`/api/admin/project/daily-task`, {
+                const res = await fetch(`/api/daily-task`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ ...form, projectId }),
@@ -149,7 +149,7 @@ const DailyTask = ({ projectId }: { projectId: string }) => {
         if (!confirm("Delete this task permanently?")) return;
 
         try {
-            const res = await fetch(`/api/admin/project/daily-task/${id}`, {
+            const res = await fetch(`/api/daily-task/${id}`, {
                 method: "DELETE",
             });
             if (!res.ok) throw new Error("Failed to delete task");

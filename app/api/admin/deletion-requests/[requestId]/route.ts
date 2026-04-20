@@ -67,7 +67,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ re
           include: {
             client: { include: { user: { select: { name: true, email: true } } } },
             engineer: { include: { user: { select: { name: true, email: true } } } },
-            resources: true
+            resources: true,
+            tickets: true,
+            milestones: true,
+            kanbanTasks: true,
           }
         }
       }
@@ -132,25 +135,57 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ re
       }
     });
 
+    // remove files from storage
+    const fileUrlsToDelete: string[] = [];
+    
+    project.resources.forEach(r => {
+      if (r.type === "FILE" || r.type === "IMAGE") fileUrlsToDelete.push(r.content);
+    });
+    
+    project.milestones.forEach(m => {
+      if (m.type !== "LINK" && m.content) fileUrlsToDelete.push(m.content);
+    });
+    
+    if (project.kanbanTasks) {
+      project.kanbanTasks.forEach(task => {
+        if (task.attachments) fileUrlsToDelete.push(...task.attachments);
+      });
+    }
+    
+    if (project.tickets) {
+      project.tickets.forEach(ticket => {
+        if (ticket.images) fileUrlsToDelete.push(...ticket.images);
+      });
+    }
+
+    // send emails
+    const emailPromises = [];
+
     if (clientUser.email) {
       const clientEmailHtml = deletionRequestApprovedTemplate(clientUser.name || "Client", project.title, clientRefundAmount, false);
-      await sendEmail(clientUser.email, `Project Cancelled: ${project.title}`, clientEmailHtml);
+      emailPromises.push(sendEmail(clientUser.email, `Project Cancelled: ${project.title}`, clientEmailHtml));
     }
 
     if (engineerUser && engineerUser.email) {
       const engEmailHtml = deletionRequestApprovedTemplate(engineerUser.name || "Engineer", project.title, engineerCompensationAmount, true);
-      await sendEmail(engineerUser.email, `Project Cancelled: ${project.title}`, engEmailHtml);
-    }
-
-    const filesToDelete = project.resources.filter(r => r.type === "FILE" || r.type === "IMAGE");
-    if (filesToDelete.length > 0) {
-      await Promise.all(filesToDelete.map(file => deleteFile(file.content)));
+      emailPromises.push(sendEmail(engineerUser.email, `Project Cancelled: ${project.title}`, engEmailHtml));
     }
 
     if (user && user.email){
       const adminEmailHtml = adminActionRequiredTemplate("REFUND", clientRefundAmount, project.title);
-      await sendEmail(user.email, `Action Required: Pending Refund`, adminEmailHtml);
+      emailPromises.push(sendEmail(user.email, `Action Required: Pending Refund`, adminEmailHtml));
     }
+
+    const externalTasks = [];
+    
+    if (fileUrlsToDelete.length > 0) {
+      const deletePromises = fileUrlsToDelete.map(url => deleteFile(url));
+      externalTasks.push(...deletePromises);
+    }
+    
+    externalTasks.push(...emailPromises);
+
+    await Promise.allSettled(externalTasks);
 
     return NextResponse.json({ success: true, message: "Project deleted successfully" }, { status: 200 });
 

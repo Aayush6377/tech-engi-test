@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   try {
     const { user, error } = await getUser();
     if (error || !user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ success: false, message: error || "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -45,6 +45,8 @@ export async function GET(req: NextRequest) {
       ];
     } else if (isEngineer) {
       whereClause.raisedById = user.id;
+    } else if (user.role === "ADMIN") {
+      whereClause.target = "PLATFORM";
     }
 
     const tickets = await prisma.ticket.findMany({
@@ -73,7 +75,7 @@ export async function POST(req: NextRequest) {
   try {
     const { user, error } = await getUser();
     if (error || !user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ success: false, message: error || "Unauthorized" }, { status: 401 });
     }
 
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
