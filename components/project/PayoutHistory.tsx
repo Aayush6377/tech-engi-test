@@ -35,7 +35,7 @@ function PayoutRow({
           >
             Paid By:
           </span>{" "}
-          <span style={{ color: "var(--text-muted)" }}>{payout.user.name}</span>
+          <span style={{ color: "var(--text-muted)" }}>{payout.user?.name || "Anonymous"}</span>
         </p>
 
         <p className="font-inter text-sm">
@@ -92,7 +92,7 @@ function PayoutRow({
 
 export default function PayoutHistory({ projectId }: { projectId: string }) {
   const { data: historyData, isLoading: historyLoading } = useSWR(
-    `/api/payout/history/${projectId}`,
+    `/api/payout/${projectId}`,
     fetcher
   );
   const transactions = historyData?.transactions ?? [];

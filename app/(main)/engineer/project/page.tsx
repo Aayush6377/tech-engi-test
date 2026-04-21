@@ -485,7 +485,7 @@ export default function ProjectsEngineerPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [showCreate, setShowCreate] = useState(false);
-  console.log("User in Engineer Project Page:", user);
+
   const fetchProjects = async () => {
     if (!user) return;
     setLoading(true);

@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
         role: u.role,
         image: u.image,
         lastActive: u.lastActiveAt,
+        isSuspended: u.isSuspended,
       };
 
       if (u.role === "ENGINEER" && u.engineerProfile) {

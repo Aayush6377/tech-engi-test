@@ -44,6 +44,19 @@ app.prepare().then(() => {
       socket.emit("user_status_result", { userId, isOnline });
     });
 
+    socket.on("check_multiple_users_status", (userIds: string[]) => {
+      if (!Array.isArray(userIds)) return;
+      
+      const statuses: Record<string, boolean> = {};
+      userIds.forEach((id) => {
+        statuses[id] = onlineUsers.has(id) && onlineUsers.get(id)!.size > 0;
+      });
+
+      console.log(onlineUsers);
+      
+      socket.emit("multiple_users_status_result", statuses);
+    });
+
     registerChatHandlers(io, socket);
 
     socket.on("disconnect", () => {

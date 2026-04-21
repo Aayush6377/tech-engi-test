@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAdmin } from "@/lib/auth";
 import { deleteFile } from "@/lib/uploads";
 import { z } from "zod";
+import { generateEmbedding } from "@/lib/embeddings";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
   try {
@@ -70,14 +71,48 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ user
     await prisma.user.update({ where: { id: userId }, data: { name } });
 
     if (existingUser.role === "CLIENT" && expertise) {
-        await prisma.clientProfile.update({ where: { userId: userId }, data: { expertise } });
+        await prisma.clientProfile.upsert({
+            where: { userId: userId },
+            update: { expertise },
+            create: { userId: userId, expertise 
+            }
+        });
     }
 
     if (existingUser.role === "ENGINEER") {
-        await prisma.engineerProfile.update({
+        await prisma.engineerProfile.upsert({
             where: { userId: userId },
-            data: { skills, qualification, approvalStatus, rejectionReason }
+            update: { 
+                skills, 
+                qualification, 
+                status: approvalStatus, 
+                rejectionReason 
+            },
+            create: {
+                userId: userId,
+                skills: skills || [],
+                qualification: qualification || "UG",
+                status: approvalStatus || "PENDING",
+                rejectionReason: rejectionReason || null,
+                idType: "AADHAAR", 
+                idNumber: "ADMIN_UPSERTED",
+                idFile: "ADMIN_UPSERTED",
+                certifications: []
+            }
         });
+
+        if (skills && skills.length > 0){
+          generateEmbedding(`Skills: ${skills.join(", ")}`)
+          .then((embeddingVector) => {
+            const vectorString = JSON.stringify(embeddingVector);
+            return prisma.$executeRaw`
+              UPDATE "EngineerProfile"
+              SET embedding = ${vectorString}::vector
+              WHERE "userId" = ${userId};
+            `;
+          })
+          .catch((err) => console.error("[embedding PUT]", err));
+        }
     }
 
     return NextResponse.json({ success: true, message: "User updated successfully" }, { status: 200 });
@@ -98,7 +133,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ u
 
     const userToDelete = await prisma.user.findUnique({
       where: { id: userId },
-      include: { engineerProfile: true, clientProfile: true, addedResources: true, image: true, milestones: true, createdKanbanTasks: true }
+      include: { engineerProfile: true, clientProfile: true, addedResources: true, milestones: true, createdKanbanTasks: true }
     });
 
     if (!userToDelete){
