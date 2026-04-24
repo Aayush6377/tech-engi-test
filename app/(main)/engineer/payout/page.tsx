@@ -33,7 +33,7 @@ interface Summary {
     days: number;
   };
 }
-const ClientPayoutPage = () => {
+const EngineerPayoutPage = () => {
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [schedule, setSchedule] = useState<PayoutSchedule | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -155,7 +155,7 @@ const ClientPayoutPage = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm opacity-90">Total Amount</p>
+              <p className="text-sm opacity-90">Total Projects</p>
               <p className="text-3xl font-bold mt-1">₹{summary?.totalAmount.toLocaleString() || 0}</p>
               <p className="text-xs opacity-75 mt-2">
                 {summary?.workingPeriod.months || 0}m {summary?.workingPeriod.days || 0}d
@@ -173,7 +173,7 @@ const ClientPayoutPage = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Projects</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Completed Projects</p>
               <p className="text-3xl font-bold mt-1">{summary?.totalTransactions || 0}</p>
               <p className="text-xs text-green-600 dark:text-green-400 mt-2">
                 {summary?.receivedCount || 0}
@@ -191,7 +191,7 @@ const ClientPayoutPage = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Transactions</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Amount Left</p>
               <p className="text-xl font-bold mt-1">
                 {schedule?.nextAmount
                   ? `₹${schedule.nextAmount.toLocaleString()}`
@@ -210,7 +210,7 @@ const ClientPayoutPage = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Remaining Amount</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Earnings</p>
               <p className="text-xl font-bold mt-1">
                 {schedule?.nextPayoutDate
                   ? formatDate(schedule.nextPayoutDate)
@@ -312,4 +312,4 @@ const ClientPayoutPage = () => {
   );
 };
 
-export default ClientPayoutPage;
+export default EngineerPayoutPage;
