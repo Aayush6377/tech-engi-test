@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getClient } from '@/lib/auth';
- 
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get('projectId');
- 
+
     if (!projectId) {
       return NextResponse.json(
         { success: false, error: 'Project ID is required' },
         { status: 400 }
       );
     }
- 
+
     const { user, error } = await getClient();
     if (error || !user?.clientProfile) {
       return NextResponse.json(
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
- 
+
     // Fetch project with transactions and resources
     const project = await prisma.project.findFirst({
       where: {
@@ -38,23 +38,25 @@ export async function GET(request: NextRequest) {
         }
       }
     });
- 
+
     if (!project) {
       return NextResponse.json(
         { success: false, error: 'Project not found or unauthorized' },
         { status: 404 }
       );
     }
- 
+
     // Calculate paid amounts
     const paidAmount = project.transactions
       .filter(t => ['ADVANCE_PAYMENT', 'FINAL_PAYMENT'].includes(t.type))
       .reduce((sum, t) => sum + t.amount, 0);
- 
+
+    const paidPercentage = project.budget > 0
+      ? Math.round((paidAmount / project.budget) * 100) : 0;
+      
     const remainingAmount = project.budget - paidAmount;
     const progress = project.progress || 0;
-    const remainingProgress = 100 - progress;
- 
+
     // Format docs from resources
     const docs = project.resources.map(r => ({
       id: r.id,
@@ -63,7 +65,7 @@ export async function GET(request: NextRequest) {
       type: 'document',
       createdAt: r.createdAt.toISOString()
     }));
- 
+
     return NextResponse.json({
       success: true,
       data: {
@@ -75,11 +77,12 @@ export async function GET(request: NextRequest) {
         remainingAmount: Math.round(Math.max(0, remainingAmount) * 100) / 100,
         totalBudget: project.budget,
         progress,
-        remainingProgress,
+        paidPercentage,
+        remainingPercentage: 100 - paidPercentage,
         docs
       }
     });
- 
+
   } catch (error) {
     console.error('Error fetching budget:', error);
     return NextResponse.json(
@@ -88,7 +91,7 @@ export async function GET(request: NextRequest) {
     );
   }
 }
- 
+
 
 export async function POST(req: Request) {
   try {

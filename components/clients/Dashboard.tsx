@@ -178,7 +178,7 @@ export default function ClientDashboard({ data}) {
   <h1 className="text-lg font-semibold">Latest Updates</h1>
 
   {/* Right button or input */}
-  {userRole.name === "ADMIN" && (
+  {userRole === "ADMIN" && (
     <div className="flex items-center gap-3">
       {!showAddUpdate ? (
         <button
@@ -267,7 +267,7 @@ export default function ClientDashboard({ data}) {
       </CardBox>
 
       {/* Employee Feedbacks */}
-      {userRol.namee === "EMPLOYEE" && (
+      {userRole === "EMPLOYEE" && (
         <CardBox title="My Feedbacks">
           {feedbacks.length === 0 ? (
             <p className="text-center text-gray-500 dark:text-gray-400 py-8">No feedbacks received yet</p>
