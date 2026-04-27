@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getEngineer } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
-    const { user, error } = await getEngineer();
-    if (error || !user || !user.engineerProfile) {
-      return NextResponse.json({ success: false, message: error || "Unauthorized" }, { status: 403 });
+    const { user, error } = await getUser();
+    if (error || !user) {
+      return NextResponse.json({ success: false, message: error || "Unauthorized" }, { status: 401 });
+    }
+
+    if (user.role !== "ENGINEER") {
+      return NextResponse.json({ success: false, message: "Engineer access required" }, { status: 403 });
+    }
+
+    if (!user.engineerProfile) {
+      return NextResponse.json({ success: true, projects: [], pagination: { total: 0, page: 1, limit: 12, totalPages: 0 }, globalStats: { total: 0, active: 0, completed: 0 } }, { status: 200 });
     }
 
     const { searchParams } = new URL(req.url);

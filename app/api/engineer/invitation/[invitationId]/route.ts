@@ -158,6 +158,29 @@ export async function PATCH( req: NextRequest, { params }: { params: Promise<{ i
         data: { status: "EXPIRED" }
     });
 
+    // Create payout transaction for this engineer when accepting project
+    const existingPayout = await prisma.transaction.findFirst({
+      where: {
+        projectId: invitation.projectId,
+        type: "PAYOUT_ENGINEER",
+        userId: user.id
+      }
+    });
+
+    // Only create if payout doesn't already exist
+    if (!existingPayout) {
+      const payoutAmount = invitation.project.budget * 0.7;
+      await prisma.transaction.create({
+        data: {
+          projectId: invitation.projectId,
+          userId: user.id,
+          amount: payoutAmount,
+          type: "PAYOUT_ENGINEER",
+          status: "PENDING",
+        },
+      });
+    }
+
     return NextResponse.json({ success: true, message: "Project accepted successfully" }, { status: 200 });
 
   } catch {

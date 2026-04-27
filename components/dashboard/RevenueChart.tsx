@@ -4,9 +4,9 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 export default function RevenueChart({ data, totalRevenue }: { data: any, totalRevenue: number }) {
-  const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
+  const [period, setPeriod] = useState<"monthly" | "yearly" | "weekly">("monthly");
   
-  const activeData = data?.[period] || [];
+  const activeData = data?.[period] || Object.values(data || {})[0] || [];
 
   return (
     <div className="bg-white p-5 border border-[var(--border)] rounded-lg">
@@ -17,10 +17,10 @@ export default function RevenueChart({ data, totalRevenue }: { data: any, totalR
         
         {/* Toggle Button */}
         <button 
-          onClick={() => setPeriod(period === "monthly" ? "yearly" : "monthly")}
-          className="flex items-center gap-1.5 text-xs font-bold font-inter text-[var(--text-secondary)] bg-white px-3 py-1.5 border border-[var(--border)] rounded-lg hover:bg-gray-50"
+          onClick={() => setPeriod(p => p === "monthly" ? "yearly" : p === "yearly" ? "weekly" : "monthly")}
+          className="flex items-center gap-1.5 text-xs font-bold font-inter text-[var(--text-secondary)] bg-white px-3 py-1.5 border border-[var(--border)] rounded-lg hover:bg-gray-50 capitalize"
         >
-          {period === "monthly" ? "Monthly" : "Yearly"} <ChevronDown size={12} />
+          {period} <ChevronDown size={12} />
         </button>
       </div>
 
@@ -42,7 +42,7 @@ export default function RevenueChart({ data, totalRevenue }: { data: any, totalR
             />
             <Tooltip
               formatter={(val) => [`₹${Number(val).toLocaleString()}`, "Revenue"]}
-              cursor={{ fill: "rgba(255,174,88,0.08)" }}
+              cursor={{ fill: "#FFAE58" }}
               contentStyle={{ borderRadius: 8, border: "1px solid #e5e5e5", fontSize: 12 }}
             />
             <Bar dataKey="value" radius={[4, 4, 0, 0]}>

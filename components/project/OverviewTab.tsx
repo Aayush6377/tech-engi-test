@@ -330,10 +330,6 @@ export default function OverviewTab({ project }: { project: any }) {
     } catch { toast.error("Error occurred"); }
   };
 
-  const handleDummyPayment = () => {
-    toast.success("Payment Gateway will be integrated here.");
-  };
-
   if (!project) return null;
 
   const card: React.CSSProperties = { background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: "1.5rem" };
@@ -356,7 +352,7 @@ export default function OverviewTab({ project }: { project: any }) {
             <div style={{ ...card, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
               <ProgressGauge progress={currentProgress} />
               <p style={{ margin: "12px 0 0", fontWeight: 600, fontSize: 14, color: T.text }}>Overall Progress</p>
-              {project.status !== "COMPLETED" && project.status !== "CANCELED" && (
+              {isEngineer && (
                 <button onClick={() => setShowProgressModal(true)} style={{ marginTop: 10, padding: "5px 16px", background: T.primaryLight, border: `1px solid ${T.primary}`, borderRadius: 20, color: T.primary, cursor: "pointer", fontWeight: 600, fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
                   <ArrowUp size={13} /> Update
                 </button>
