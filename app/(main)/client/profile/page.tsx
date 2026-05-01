@@ -34,7 +34,7 @@ export default function Profile() {
     }
   };
 
-  const updateProfile = async (updatedData) => {
+  const updateProfile = async (updatedData: Record<string, any>) => {
     try {
       const res = await fetch("/api/client/profile", {
         method: "PUT",

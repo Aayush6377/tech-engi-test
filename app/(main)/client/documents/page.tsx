@@ -5,14 +5,36 @@ import { Download, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Loader from '@/components/common/Loading';
 
+interface DocumentItem {
+  id: string;
+  title: string;
+  fileUrl: string;
+  createdAt: string;
+  Projects: {
+    id: string;
+    name: string;
+  };
+  User: {
+    name: string;
+  }
+}
+
+interface ProjectItem {
+  id: string;
+  name: string;
+}
 
 export default function ClientDocumentsPage() {
-  const [documents, setDocuments] = useState([]);
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [isLoadingPro, setLoadingPro] = useState(false);
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [addModal, setAddModal] = useState(false);
-  const [newDoc, setNewDoc] = useState({ title: "", file: null, projectId: "all" });
+  const [newDoc, setNewDoc] = useState<{ title: string; file: File | null; projectId: string }>({ 
+    title: "", 
+    file: null, 
+    projectId: "all" 
+  });
 
 
   const fetchDocuments = async () => {
